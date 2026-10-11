@@ -36,14 +36,19 @@ export default function Home() {
   }, [items, filter, q])
 
   return <Page>
-    <div className="row between">
-      <Logo />
+    <section className="brand-hero">
+      <div className="row between">
+        <Logo inverse />
       {user
         ? <Link to="/score" className="score-pill" aria-label="Mon score de confiance"><Star size={16} />Score {profile?.score ?? 400}</Link>
         : <Link to="/connexion" className="score-pill"><Icon name="user" size={16} />Connexion</Link>}
-    </div>
-    <div className="row small semi" style={{ gap: 6 }}><span className="green"><Icon name="pin" size={16} /></span>Dakar</div>
-    <h1 className="display h1">Louez le matériel qu'il vous faut, près de chez vous.</h1>
+      </div>
+      <div className="brand-hero-copy">
+        <div className="brand-kicker"><Icon name="pin" size={15} /> Dakar · location entre particuliers</div>
+        <h1 className="display h1">Louez près de chez vous</h1>
+        <p>Le matériel qu’il te faut, les revenus que tu peux générer.</p>
+      </div>
+    </section>
     <div className="field">
       <label htmlFor="q">Que cherchez-vous ?</label>
       <input id="q" type="search" placeholder="Caméra, sono, perceuse, chaises…" value={q} onChange={e => setQ(e.target.value)} />
@@ -52,9 +57,9 @@ export default function Home() {
       {FILTERS.map(([lab, cat]) => <button key={lab} className={'chip' + (filter === cat ? ' on' : '')} aria-pressed={filter === cat} onClick={() => setFilter(cat)}>{lab}</button>)}
     </div>
     <ErrorBox msg={err} />
-    {items === null ? <Spinner /> : <div className="stack">
+    {items === null ? <Spinner /> : <div className="listing-results">
       <h2 className="h3">{shown.length} annonce{shown.length > 1 ? 's' : ''}{filter ? ` · ${FILTERS.find(f => f[1] === filter)?.[0]}` : ' près de chez vous'}</h2>
-      {shown.map(l => <ListingCard key={l.id} l={l} />)}
+      <div className="listing-grid">{shown.map(l => <ListingCard key={l.id} l={l} />)}</div>
       {shown.length === 0 && <div className="card stack">
         <div className="bold">Aucune annonce pour l'instant</div>
         <div className="soft small">Soyez le premier à proposer ce matériel à la location.</div>

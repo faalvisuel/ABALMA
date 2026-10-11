@@ -108,7 +108,7 @@ export default function Publish() {
       </div>
       <div className="card dark stack">
         <Row l="Prix payé par l'emprunteur" v={fcfa(price)} />
-        <Row l="Commission Abalma (15 %)" v={'− ' + fcfa(commission)} />
+        <Row l="Commission alma (15 %)" v={'− ' + fcfa(commission)} />
         <hr className="sep" />
         <div className="row between"><span className="bold">Vous recevez par jour</span><span className="display accent num" style={{ fontSize: 24 }}>{fcfa(price - commission)}</span></div>
       </div>

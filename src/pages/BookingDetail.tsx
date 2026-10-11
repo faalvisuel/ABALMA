@@ -1,13 +1,15 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Link, useParams } from 'react-router-dom'
+import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { supabase, errMsg } from '../lib/supabase'
 import { useAuth } from '../auth'
 import { borrowerLevel, fcfa, frDate, initials, shortName, STATUS_LABEL, TAGS_FOR_BORROWER, TAGS_FOR_OWNER } from '../lib/util'
 import { ErrorBox, Header, Icon, Note, Page, Row, Spinner, Star, Stars, Thumb } from '../components/ui'
+import { createPayDunyaPaymentRequest } from '../lib/paydunya'
 import { BOOKING_SELECT } from './Bookings'
 
 export default function BookingDetail() {
   const { id } = useParams()
+  const [searchParams, setSearchParams] = useSearchParams()
   const { user, refresh } = useAuth()
   const [b, setB] = useState<any>(undefined)
   const [code, setCode] = useState<string | null>(null)
@@ -31,6 +33,19 @@ export default function BookingDetail() {
     setMyReview(r.data || null)
   }, [id, user.id])
   useEffect(() => { load() }, [load])
+  useEffect(() => {
+    if (searchParams.get('payment') !== 'return' || !id) return
+    const verify = async () => {
+      const { data, error } = await supabase.functions.invoke('paydunya-payments', {
+        body: { action: 'verify', booking_id: id },
+      })
+      if (error || !data?.ok) setErr(data?.message || 'La vérification du paiement a échoué.')
+      else if (data.completed) await load()
+      else setErr('Paiement en cours de confirmation. Actualisez cette page dans un instant.')
+      setSearchParams({}, { replace: true })
+    }
+    verify()
+  }, [id, load, searchParams, setSearchParams])
 
   async function call(fn: string, args: any) {
     setBusy(true); setErr(null)
@@ -60,7 +75,7 @@ export default function BookingDetail() {
     <ErrorBox msg={err} />
     {iAmOwner
       ? <OwnerView b={b} busy={busy} call={call} />
-      : <BorrowerView b={b} busy={busy} call={call} code={code} priv={priv} />}
+      : <BorrowerView b={b} busy={busy} setBusy={setBusy} call={call} code={code} priv={priv} setErr={setErr} />}
     {b.status === 'done' && (myReview
       ? <div className="card stack s6"><div className="bold">Votre avis</div><Stars value={myReview.stars} size={20} />{myReview.comment && <div className="soft small">{myReview.comment}</div>}</div>
       : <ReviewForm who={shortName(other)} ini={initials(other?.first_name, other?.last_name)} tags={iAmOwner ? TAGS_FOR_BORROWER : TAGS_FOR_OWNER} busy={busy}
@@ -70,7 +85,7 @@ export default function BookingDetail() {
       <h2 className="h3">Montants</h2>
       <Row l={`${b.days} jour${b.days > 1 ? 's' : ''} de location`} v={fcfa(b.price_total)} />
       {!iAmOwner && b.discount > 0 && <Row l="Réduction score de confiance" v={'− ' + fcfa(b.discount)} />}
-      {iAmOwner && <Row l="Commission Abalma (15 %)" v={'− ' + fcfa(b.price_total - b.owner_payout)} />}
+      {iAmOwner && <Row l="Commission alma (15 %)" v={'− ' + fcfa(b.price_total - b.owner_payout)} />}
       <hr className="sep" />
       <Row l={iAmOwner ? 'Vous recevez' : 'À payer'} v={fcfa(iAmOwner ? b.owner_payout : b.amount_paid)} bold />
       <Row l="Caution" v={fcfa(b.deposit)} />
@@ -78,7 +93,7 @@ export default function BookingDetail() {
   </Page>
 }
 
-function BorrowerView({ b, busy, call, code, priv }: any) {
+function BorrowerView({ b, busy, setBusy, call, code, priv, setErr }: any) {
   const [method, setMethod] = useState('wave')
   const [phone, setPhone] = useState('')
   const owner = shortName(b.owner)
@@ -89,14 +104,23 @@ function BorrowerView({ b, busy, call, code, priv }: any) {
   if (b.status === 'refused') return <div className="notice">{owner} n'a pas pu accepter cette demande. Vous pouvez chercher un autre matériel. <Link to="/" className="bold">Retour aux annonces</Link></div>
   if (b.status === 'cancelled') return <div className="notice">Cette réservation est annulée.</div>
   if (b.status === 'accepted') return <div className="stack s16">
-    <div className="test-banner">Version de test : le paiement est simulé, aucun argent n'est débité.</div>
+    <div className="test-banner">Paiement sécurisé par PayDunya. Vous serez redirigé vers la page de paiement.</div>
     <div className="stack s8"><h2 className="h3">Payer avec</h2>
       {[['wave', 'Wave'], ['orange_money', 'Orange Money']].map(([v, lab]) =>
         <label key={v} className={'radio-card' + (method === v ? ' on' : '')}><input type="radio" name="pm" checked={method === v} onChange={() => setMethod(v)} /><span className="bold">{lab}</span></label>)}
     </div>
     <div className="field"><label htmlFor="ph">Numéro du compte mobile</label><input id="ph" type="tel" inputMode="tel" placeholder="77 000 00 00" value={phone} onChange={e => setPhone(e.target.value)} /></div>
-    <Note icon="lock">Abalma garde votre paiement et le verse à {owner} après la remise du matériel.</Note>
-    <button className="btn" disabled={busy} onClick={() => call('pay_booking', { p_id: b.id, p_method: method })}>{busy ? 'Paiement…' : `Payer ${fcfa(b.amount_paid)}`}</button>
+    <Note icon="lock">alma garde votre paiement et le verse à {owner} après la remise du matériel.</Note>
+    <button className="btn" disabled={busy} onClick={async () => {
+      setBusy(true); setErr(null)
+      const res = await createPayDunyaPaymentRequest(b.id, method as 'wave' | 'orange_money', phone)
+      if (!res.ok) {
+        setBusy(false)
+        setErr(res.message || 'Le paiement PayDunya a échoué.')
+        return
+      }
+      window.location.assign(res.checkoutUrl)
+    }}>{busy ? 'Paiement…' : `Payer ${fcfa(b.amount_paid)}`}</button>
     <button className="btn danger sm" disabled={busy} onClick={() => call('cancel_booking', { p_id: b.id })}>Annuler la réservation</button>
   </div>
   if (b.status === 'paid' || b.status === 'ongoing') return <div className="stack s16">
@@ -107,7 +131,7 @@ function BorrowerView({ b, busy, call, code, priv }: any) {
     </div> : <div className="notice">Location en cours. Rapportez le matériel le {frDate(b.end_date, true)} : un retour à l'heure fait monter votre score.</div>}
     <Contact priv={priv} owner={owner} />
   </div>
-  if (b.status === 'dispute') return <div className="notice">Un problème a été signalé par {owner}. Abalma examine la situation et vous contactera.</div>
+  if (b.status === 'dispute') return <div className="notice">Un problème a été signalé par {owner}. alma examine la situation et vous contactera.</div>
   return <div className="notice">Location terminée. Votre caution est libérée.</div>
 }
 
@@ -167,7 +191,7 @@ function OwnerView({ b, busy, call }: any) {
     <button className="btn" disabled={busy || (showProblem && !problem.trim())} onClick={() => call('confirm_return', { p_id: b.id, p_late: late, p_problem: showProblem ? problem : '' })}>{showProblem ? 'Envoyer le signalement' : 'Valider le retour en bon état'}</button>
     <button className="link-btn" onClick={() => setShowProblem(!showProblem)}>{showProblem ? 'Finalement, tout va bien' : 'Signaler un problème'}</button>
   </div>
-  if (b.status === 'dispute') return <div className="stack">{who}<div className="notice">Votre signalement est transmis à Abalma : « {b.problem} »</div></div>
+  if (b.status === 'dispute') return <div className="stack">{who}<div className="notice">Votre signalement est transmis à alma : « {b.problem} »</div></div>
   if (b.status === 'done') return <div className="stack">{who}<div className="notice">Location terminée. Versement : {fcfa(b.owner_payout)}.</div></div>
   return <div className="stack">{who}<div className="notice">Cette demande est {b.status === 'refused' ? 'refusée' : 'annulée'}.</div></div>
 }

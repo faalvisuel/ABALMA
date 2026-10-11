@@ -1,6 +1,6 @@
-# Abalma
+# alma
 
-**Application de location de matériel entre particuliers à Dakar.** « Abal ma » signifie « prête-moi » en wolof.
+**Application de location de matériel entre particuliers à Dakar.** Le nom alma remplace désormais l’ancien branding de l’application.
 
 > **Important :** l’aperçu de fichiers GitHub ne lance pas cette application React. Pour voir l’interface, lancez le projet en local ou déployez-le sur Vercel/Netlify. Sans configuration Supabase, l’application affiche un écran expliquant que la base de données n’est pas connectée.
 

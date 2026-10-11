@@ -14,8 +14,8 @@ button { cursor: pointer; }
 :focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
 h1, h2, h3, p { margin: 0; }
 
-.app { max-width: 480px; min-height: 100dvh; margin: 0 auto; background: var(--bg); display: flex; flex-direction: column; position: relative; }
-.page { flex: 1; padding: 20px 20px 104px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
+.app { width: 100%; min-height: 100dvh; margin: 0 auto; background: var(--bg); display: flex; flex-direction: column; position: relative; }
+.page { flex: 1; width: 100%; max-width: 1600px; margin: 0 auto; padding: 20px 24px 104px; display: flex; flex-direction: column; gap: 16px; min-width: 0; }
 .page.no-nav { padding-bottom: 32px; }
 .stack { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
 .stack.s6 { gap: 6px; } .stack.s8 { gap: 8px; } .stack.s16 { gap: 16px; } .stack.s2 { gap: 2px; }
@@ -81,7 +81,15 @@ h1, h2, h3, p { margin: 0; }
 .header { display: flex; align-items: center; gap: 8px; }
 .back { flex: none; width: 44px; height: 44px; border-radius: 50%; background: var(--card); border: 0; display: flex; align-items: center; justify-content: center; color: var(--ink); }
 .logo { display: flex; align-items: center; gap: 8px; color: var(--ink); }
-.logo span { font-family: var(--display); font-weight: 700; font-size: 24px; letter-spacing: -0.02em; }
+.logo-art { width: 132px; height: 41px; flex: none; display: block; }
+.logo.inverse { color: var(--bg); }
+.brand-hero { position: relative; isolation: isolate; overflow: hidden; display: flex; flex-direction: column; gap: 28px; margin: -20px -20px 0; padding: 20px 20px 24px; min-height: 224px; color: var(--bg); background: linear-gradient(90deg, rgba(16, 32, 26, .94) 0%, rgba(16, 32, 26, .78) 58%, rgba(16, 32, 26, .15) 100%), url('/brand-pattern.svg') center 38% / cover no-repeat; border-radius: 0 0 18px 18px; }
+.brand-hero > * { position: relative; z-index: 1; }
+.brand-hero .score-pill { background: #fff; color: var(--green); }
+.brand-hero-copy { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; max-width: 330px; }
+.brand-hero-copy .h1 { color: var(--bg); font-size: 30px; }
+.brand-hero-copy p { max-width: 280px; color: #DCE7E0; font-size: 14px; line-height: 1.45; }
+.brand-kicker { display: flex; align-items: center; gap: 6px; color: var(--yellow); font-size: 12px; font-weight: 700; }
 .score-pill { display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 12px; border-radius: 22px; background: var(--card); color: var(--ink); font-weight: 700; font-size: 13px; }
 
 .listing-card { display: flex; gap: 14px; padding: 12px; background: var(--card); border-radius: 16px; color: var(--ink); align-items: center; }
@@ -97,6 +105,9 @@ h1, h2, h3, p { margin: 0; }
 .hero-dots .on i { background: #fff; width: 10px; height: 10px; }
 
 .nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); background: var(--card); border-top: 1px solid var(--line); padding: 8px 8px calc(10px + env(safe-area-inset-bottom, 0px)); z-index: 10; }
+.nav-inner { display: contents; }
+.nav-brand, .nav-account { display: none; }
+.nav-links { display: contents; }
 .nav a { min-height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; font-size: 12px; font-weight: 600; color: var(--muted); }
 .nav a.active { color: var(--green); font-weight: 700; }
 .sticky-foot { position: sticky; bottom: 0; margin: auto -20px -32px; padding: 14px 20px calc(20px + env(safe-area-inset-bottom, 0px)); background: var(--card); border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
@@ -133,6 +144,34 @@ h1, h2, h3, p { margin: 0; }
 .table-scroll { overflow-x: auto; }
 table { border-collapse: collapse; width: 100%; font-size: 13px; }
 th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+.listing-results { display: flex; flex-direction: column; gap: 12px; }
+.listing-grid { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; }
 .spinner { margin: 40px auto; width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--tint); border-top-color: var(--green); animation: spin .8s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
+@media (min-width: 768px) {
+  .page { padding: 92px 40px 64px; }
+  .page.no-nav { max-width: 680px; padding: 32px 40px 64px; }
+  .nav { top: 0; bottom: auto; left: 0; transform: none; max-width: none; display: flex; justify-content: center; padding: 10px 40px; border-top: 0; border-bottom: 1px solid var(--line); }
+  .nav-inner { width: 100%; max-width: 1520px; margin: 0 auto; display: flex; align-items: center; gap: 40px; }
+  .nav-brand { display: block; flex: none; }
+  .nav-brand .logo-art { width: 112px; height: 35px; }
+  .nav-links { display: flex; flex: 1; align-items: center; justify-content: center; gap: clamp(20px, 3vw, 48px); }
+  .nav .nav-links a { min-height: 44px; flex-direction: row; gap: 8px; padding: 0 4px; font-size: 14px; }
+  .nav .nav-account { display: flex; flex: none; flex-direction: row; align-items: center; gap: 8px; min-height: 44px; color: var(--ink); font-size: 14px; font-weight: 600; }
+  .brand-hero { min-height: 340px; margin: 0 -40px; padding: 48px; justify-content: flex-end; }
+  .brand-hero > .row { position: absolute; top: 28px; left: 48px; right: 48px; }
+  .brand-hero > .row .logo { display: none; }
+  .brand-hero-copy { max-width: 560px; gap: 12px; }
+  .brand-hero-copy .h1 { font-size: 48px; }
+  .brand-hero-copy p { max-width: 430px; font-size: 17px; }
+  .page > .field { max-width: 760px; }
+  .page > form { width: 100%; max-width: 900px; }
+  .page > .btn { max-width: 420px; }
+  .listing-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+  .listing-card { min-height: 132px; }
+  .thumb { width: 108px; height: 108px; }
+}
+@media (min-width: 1120px) {
+  .listing-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 @media (prefers-reduced-motion: reduce) { .spinner { animation-duration: 2s; } }

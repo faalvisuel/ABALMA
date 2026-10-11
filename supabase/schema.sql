@@ -1,5 +1,5 @@
 -- =====================================================================
--- Abalma — schéma de base de données (Supabase / PostgreSQL)
+-- alma — schéma de base de données (Supabase / PostgreSQL)
 -- À coller une seule fois dans Supabase > SQL Editor > New query > Run.
 -- Version de test : le paiement est SIMULÉ (aucun argent réel).
 -- =====================================================================
@@ -60,7 +60,7 @@ create table if not exists public.bookings (
   discount int not null default 0,
   amount_paid int not null,      -- payé par l'emprunteur
   deposit int not null default 0,
-  commission int not null,       -- part d'Abalma
+  commission int not null,       -- part d'alma
   owner_payout int not null,     -- reçu par le loueur (85 % du prix plein)
   status text not null default 'requested'
     check (status in ('requested','accepted','refused','paid','ongoing','done','cancelled','dispute')),
@@ -69,8 +69,12 @@ create table if not exists public.bookings (
   returned_late boolean,
   problem text,
   created_at timestamptz not null default now(),
-  paid_at timestamptz
+  paid_at timestamptz,
+  paydunya_token text,
+  paydunya_checkout_url text
 );
+alter table public.bookings add column if not exists paydunya_token text;
+alter table public.bookings add column if not exists paydunya_checkout_url text;
 
 -- Code de remise : lisible uniquement par l'emprunteur
 create table if not exists public.booking_codes (
@@ -278,7 +282,7 @@ begin
   select * into b from bookings where id = p_id for update;
   if b.id is null or b.owner_id <> auth.uid() then raise exception 'Réservation introuvable.'; end if;
   if b.status <> 'paid' then raise exception 'Cette réservation n''attend pas de remise.'; end if;
-  if b.code_attempts >= 5 then raise exception 'Trop d''essais. Contactez Abalma pour débloquer la remise.'; end if;
+  if b.code_attempts >= 5 then raise exception 'Trop d''essais. Contactez alma pour débloquer la remise.'; end if;
   select code into v_code from booking_codes where booking_id = p_id;
   if v_code = trim(p_code) then
     update bookings set status = 'ongoing' where id = p_id;
@@ -373,6 +377,7 @@ grant execute on function public.request_booking(uuid,date,date), public.respond
   public.confirm_return(uuid,boolean,text), public.submit_review(uuid,int,text[],text),
   public.admin_set_verified(uuid,boolean), public.admin_set_listing_status(uuid,text),
   public.admin_resolve_dispute(uuid,boolean), public.is_admin() to authenticated;
+revoke execute on function public.pay_booking(uuid,text) from public, anon, authenticated;
 
 -- ---------- Stockage des photos ----------
 insert into storage.buckets (id, name, public) values ('photos', 'photos', true)

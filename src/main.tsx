@@ -28,7 +28,7 @@ function Private({ children }: { children: JSX.Element }) {
 
 function Setup() {
   return <main className="page no-nav">
-    <h1 className="display h1">Abalma n'est pas encore relié à sa base de données</h1>
+    <h1 className="display h1">alma n'est pas encore relié à sa base de données</h1>
     <p className="soft">Ajoutez les variables <b>VITE_SUPABASE_URL</b> et <b>VITE_SUPABASE_ANON_KEY</b> dans les réglages de l'hébergeur (ou dans un fichier <b>.env.local</b>), puis relancez la mise en ligne. Les étapes sont détaillées dans le fichier README.</p>
   </main>
 }
