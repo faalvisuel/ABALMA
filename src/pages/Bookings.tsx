@@ -5,7 +5,7 @@ import { useAuth } from '../auth'
 import { fcfa, frDate, STATUS_LABEL } from '../lib/util'
 import { ErrorBox, Page, Spinner, Thumb } from '../components/ui'
 
-export const BOOKING_SELECT = '*, listing:listings(id,title,photos,quartier), borrower:profiles!bookings_borrower_id_fkey(id,first_name,last_name,verified,score,rentals_done,disputes,borrower_rating), owner:profiles!bookings_owner_id_fkey(id,first_name,last_name,verified,owner_rating,owner_rentals)'
+export const BOOKING_SELECT = '*, listing:listings(id,title,photos,quartier), borrower:profiles!bookings_borrower_id_fkey(id,first_name,last_name,avatar_url,verified,score,rentals_done,disputes,borrower_rating), owner:profiles!bookings_owner_id_fkey(id,first_name,last_name,avatar_url,verified,owner_rating,owner_rentals)'
 
 export function BookingRow({ b, as }: { b: any; as: 'borrower' | 'owner' }) {
   const warn = ['requested', 'accepted', 'dispute'].includes(b.status)

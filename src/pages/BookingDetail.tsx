@@ -3,7 +3,7 @@ import { Link, useParams, useSearchParams } from 'react-router-dom'
 import { supabase, errMsg } from '../lib/supabase'
 import { useAuth } from '../auth'
 import { borrowerLevel, fcfa, frDate, initials, shortName, STATUS_LABEL, TAGS_FOR_BORROWER, TAGS_FOR_OWNER } from '../lib/util'
-import { ErrorBox, Header, Icon, Note, Page, Row, Spinner, Star, Stars, Thumb } from '../components/ui'
+import { Avatar, ErrorBox, Header, Icon, Note, Page, Row, Spinner, Star, Stars, Thumb } from '../components/ui'
 import { createPayDunyaPaymentRequest } from '../lib/paydunya'
 import { BOOKING_SELECT } from './Bookings'
 
@@ -80,6 +80,7 @@ export default function BookingDetail() {
       ? <div className="card stack s6"><div className="bold">Votre avis</div><Stars value={myReview.stars} size={20} />{myReview.comment && <div className="soft small">{myReview.comment}</div>}</div>
       : <ReviewForm who={shortName(other)} ini={initials(other?.first_name, other?.last_name)} tags={iAmOwner ? TAGS_FOR_BORROWER : TAGS_FOR_OWNER} busy={busy}
           note={iAmOwner ? 'Votre note compte dans le score de confiance de l’emprunteur.' : 'Votre avis aide les autres emprunteurs et fait monter le niveau du loueur.'}
+          avatar={other?.avatar_url}
           onSend={(stars, tags, comment) => call('submit_review', { p_id: b.id, p_stars: stars, p_tags: tags, p_comment: comment })} />)}
     <div className="card stack">
       <h2 className="h3">Montants</h2>
@@ -163,7 +164,7 @@ function OwnerView({ b, busy, call }: any) {
   const [showProblem, setShowProblem] = useState(false)
   const p = b.borrower, lvl = borrowerLevel(p?.score ?? 400), name = shortName(p)
   const who = <div className="card stack">
-    <div className="row"><div className="avatar light">{initials(p?.first_name, p?.last_name)}</div>
+    <div className="row"><Avatar src={p?.avatar_url} className="light">{initials(p?.first_name, p?.last_name)}</Avatar>
       <div className="stack s2 grow"><div className="bold">{name}{p?.verified ? ' · Identité vérifiée' : ''}</div>
         <div className="small muted">{p?.rentals_done || 0} location{(p?.rentals_done || 0) > 1 ? 's' : ''} terminée{(p?.rentals_done || 0) > 1 ? 's' : ''} · {p?.disputes || 0} litige{(p?.disputes || 0) > 1 ? 's' : ''}</div></div></div>
     <div className="card tint row small semi" style={{ padding: '8px 12px' }}><Star size={18} />Score de confiance {p?.score ?? 400} · {lvl.name}</div>
@@ -196,13 +197,13 @@ function OwnerView({ b, busy, call }: any) {
   return <div className="stack">{who}<div className="notice">Cette demande est {b.status === 'refused' ? 'refusée' : 'annulée'}.</div></div>
 }
 
-function ReviewForm({ who, ini, tags, note, busy, onSend }: { who: string; ini: string; tags: string[]; note: string; busy: boolean; onSend: (s: number, t: string[], c: string) => void }) {
+function ReviewForm({ who, ini, avatar, tags, note, busy, onSend }: { who: string; ini: string; avatar?: string; tags: string[]; note: string; busy: boolean; onSend: (s: number, t: string[], c: string) => void }) {
   const [stars, setStars] = useState(0)
   const [sel, setSel] = useState<string[]>([])
   const [comment, setComment] = useState('')
   return <div className="card stack s16">
     <div className="stack center" style={{ alignItems: 'center' }}>
-      <div className="avatar lg">{ini}</div><div className="bold" style={{ fontSize: 17 }}>Votre avis sur {who}</div>
+      <Avatar src={avatar} className="lg">{ini}</Avatar><div className="bold" style={{ fontSize: 17 }}>Votre avis sur {who}</div>
       <Stars value={stars} onChange={setStars} />
     </div>
     <div className="stack s8"><div className="bold">Qu'est-ce qui s'est bien passé ?</div>

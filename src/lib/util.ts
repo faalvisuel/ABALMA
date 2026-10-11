@@ -3,6 +3,14 @@ export const COMMISSION = 0.15
 export const CATEGORIES = [
   'Audiovisuel', 'Bricolage et outils', 'Maison et énergie', 'Événement et fête', 'Sport et loisirs', 'Autre',
 ]
+export const CATEGORY_IMAGES: Record<string, string> = {
+  'Audiovisuel': '/categories/audiovisuel.jpg',
+  'Bricolage et outils': '/categories/bricolage.jpg',
+  'Maison et énergie': '/categories/maison-energie.jpg',
+  'Événement et fête': '/categories/evenement.jpg',
+  'Sport et loisirs': '/categories/sport-loisirs.jpg',
+  'Autre': '/categories/autre.jpg',
+}
 export const CATEGORY_HINTS: Record<string, string> = {
   'Audiovisuel': 'Caméras, sono, lumière, micros',
   'Bricolage et outils': 'Perceuse, échelle, nettoyeur',

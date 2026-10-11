@@ -1,6 +1,6 @@
 import { ReactNode, useMemo, useState } from 'react'
 import { Link, NavLink, useNavigate } from 'react-router-dom'
-import { fcfa, iso, ownerLevel, shortName } from '../lib/util'
+import { CATEGORY_IMAGES, fcfa, iso, ownerLevel, shortName } from '../lib/util'
 
 const PATHS: Record<string, string> = {
   search: '<circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/>',
@@ -39,6 +39,9 @@ export function Logo({ inverse = false }: { inverse?: boolean }) {
     </svg>
   </Link>
 }
+export function Avatar({ src, className = '', children }: { src?: string | null; className?: string; children: ReactNode }) {
+  return <div className={'avatar' + (className ? ' ' + className : '')}>{src ? <img src={src} alt="" /> : children}</div>
+}
 export function Header({ title, sub, back }: { title: string; sub?: string; back?: string | number }) {
   const nav = useNavigate()
   return <div className="header">
@@ -72,7 +75,7 @@ export function ListingCard({ l }: { l: any }) {
   const lvl = ownerLevel(owner)
   const name = l.is_demo ? l.demo_owner : shortName(owner)
   return <Link to={`/annonce/${l.id}`} className="listing-card">
-    <Thumb src={l.photos?.[0]} />
+    <Thumb src={l.photos?.[0] || (l.is_demo ? CATEGORY_IMAGES[l.category] : undefined)} />
     <div className="stack s6 grow">
       <div className="bold" style={{ lineHeight: 1.25 }}>{l.title}</div>
       <div className="small muted">{name} · {l.quartier}{owner?.verified ? ' · Identité vérifiée' : ''}</div>

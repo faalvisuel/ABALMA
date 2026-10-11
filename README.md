@@ -51,9 +51,10 @@ Prérequis : Node.js (version LTS) et Git.
 
 1. Créez un projet sur [Supabase](https://supabase.com/).
 2. Dans **SQL Editor**, exécutez le contenu de [`supabase/schema.sql`](supabase/schema.sql).
-3. Récupérez l’URL du projet et sa clé publique dans les paramètres API.
-4. Ajoutez ces deux valeurs dans `.env.local` en local et dans les variables d’environnement de l’hébergeur en ligne.
-5. Pour les tests uniquement, la confirmation d’e-mail peut être désactivée dans les paramètres d’authentification. Réactivez-la avant toute ouverture publique.
+3. Pour activer les photos de profil sur un projet déjà configuré, exécute une fois [`supabase/avatar-migration.sql`](supabase/avatar-migration.sql) dans le **SQL Editor**.
+4. Récupérez l’URL du projet et sa clé publique dans les paramètres API.
+5. Ajoutez ces deux valeurs dans `.env.local` en local et dans les variables d’environnement de l’hébergeur en ligne.
+6. Pour les tests uniquement, la confirmation d’e-mail peut être désactivée dans les paramètres d’authentification. Réactivez-la avant toute ouverture publique.
 
 Si ces variables ne sont pas renseignées, l’application n’a pas accès à la base et ne peut pas fournir le parcours complet.
 

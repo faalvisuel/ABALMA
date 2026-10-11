@@ -1,10 +1,19 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
+import { BatteryCharging, Bike, Camera, Drill, PackageOpen, PartyPopper, type LucideIcon } from 'lucide-react'
 import { supabase, errMsg } from '../lib/supabase'
 import { useAuth } from '../auth'
 import { FILTERS, ownerLevel } from '../lib/util'
 import { ErrorBox, Icon, ListingCard, Logo, Page, Spinner, Star } from '../components/ui'
 
+const CATEGORY_ICONS: Record<string, LucideIcon> = {
+  Audiovisuel: Camera,
+  'Bricolage et outils': Drill,
+  'Maison et énergie': BatteryCharging,
+  'Événement et fête': PartyPopper,
+  'Sport et loisirs': Bike,
+  Autre: PackageOpen,
+}
 const OWNER = 'owner:profiles(id,first_name,last_name,verified,owner_rentals,owner_rating,job)'
 const FRESH_DAYS = 14
 
@@ -54,7 +63,13 @@ export default function Home() {
       <input id="q" type="search" placeholder="Caméra, sono, perceuse, chaises…" value={q} onChange={e => setQ(e.target.value)} />
     </div>
     <div className="chips" role="group" aria-label="Filtrer par catégorie">
-      {FILTERS.map(([lab, cat]) => <button key={lab} className={'chip' + (filter === cat ? ' on' : '')} aria-pressed={filter === cat} onClick={() => setFilter(cat)}>{lab}</button>)}
+      {FILTERS.map(([lab, cat]) => {
+        const CategoryIcon = cat ? CATEGORY_ICONS[cat] || PackageOpen : null
+        return <button key={lab} className={'chip category-chip' + (filter === cat ? ' on' : '')} aria-pressed={filter === cat} onClick={() => setFilter(cat)}>
+          {CategoryIcon && <span className="category-icon"><CategoryIcon size={22} strokeWidth={1.8} aria-hidden="true" /></span>}
+          <span>{lab}</span>
+        </button>
+      })}
     </div>
     <ErrorBox msg={err} />
     {items === null ? <Spinner /> : <div className="listing-results">
