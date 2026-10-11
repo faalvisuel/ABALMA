@@ -1,91 +1,91 @@
 # Abalma
 
-Location de matériel entre particuliers à Dakar. « Abal ma » veut dire « prête-moi » en wolof.
+**Application de location de matériel entre particuliers à Dakar.** « Abal ma » signifie « prête-moi » en wolof.
 
-Ceci est une **version de test** : le paiement Wave / Orange Money est **simulé**, aucun argent ne circule.
+> **Important :** l’aperçu de fichiers GitHub ne lance pas cette application React. Pour voir l’interface, lancez le projet en local ou déployez-le sur Vercel/Netlify. Sans configuration Supabase, l’application affiche un écran expliquant que la base de données n’est pas connectée.
 
-## Ce que fait l'appli
+## Ouvrir l’application
 
-- Comptes par e-mail et mot de passe, profil, vérification d'identité par l'administrateur
-- Annonces avec 3 à 5 photos, recherche, filtres par catégorie (dont « Autre »)
-- Calendrier de réservation sur 12 mois, demande, acceptation ou refus par le loueur
-- Paiement simulé, code de remise à 4 chiffres, validation du retour, signalement d'un problème
-- Adresse exacte et numéro WhatsApp du loueur visibles seulement après paiement
-- Avis dans les deux sens, score de confiance de l'emprunteur, niveaux de loueur
-- Page d'administration (`/admin`)
+### Option A — En local sur votre ordinateur
 
-## Mise en ligne gratuite, pas à pas
+Prérequis : Node.js (version LTS) et Git.
 
-### 1. Base de données (Supabase)
+1. Ouvrez le dépôt `https://github.com/faalvisuel/ABALMA`.
+2. Téléchargez le projet via **Code > Download ZIP**, puis décompressez-le, ou clonez-le avec Git.
+3. Ouvrez le dossier `ABALMA` dans un terminal.
+4. Installez les dépendances :
 
-1. Sur [supabase.com](https://supabase.com), créez un projet (région la plus proche, par exemple Europe de l'Ouest).
-2. Ouvrez **SQL Editor > New query**, collez tout le contenu de [`supabase/schema.sql`](supabase/schema.sql), puis cliquez sur **Run**.
-3. Pour tester sans attendre d'e-mail : **Authentication > Sign In / Providers > Email**, désactivez **Confirm email**. Réactivez-le avant d'ouvrir au public.
-4. Dans **Project Settings > API**, notez **Project URL** et la clé **anon public**. N'utilisez jamais la clé `service_role` dans l'appli.
+   ```bash
+   npm install
+   ```
 
-### 2. Hébergement (Vercel ou Netlify)
+5. Copiez `.env.example` vers `.env.local` et ajoutez les informations de votre projet Supabase :
 
-1. Créez un compte avec votre GitHub, puis importez le dépôt `abalma`.
-2. Réglages de construction : commande `npm run build`, dossier de sortie `dist` (détectés automatiquement pour Vite).
-3. Ajoutez deux variables d'environnement :
-   - `VITE_SUPABASE_URL` = votre Project URL
-   - `VITE_SUPABASE_ANON_KEY` = votre clé anon public
-4. Lancez le déploiement. Vous obtenez une adresse du type `abalma.vercel.app`.
-5. Dans Supabase, **Authentication > URL Configuration**, mettez cette adresse dans **Site URL**.
+   ```bash
+   cp .env.example .env.local
+   ```
 
-Chaque modification poussée sur la branche `main` se remet en ligne toute seule.
+6. Démarrez l’application :
 
-### 3. Devenir administrateur
+   ```bash
+   npm run dev
+   ```
 
-Créez votre compte dans l'appli, puis dans Supabase **SQL Editor** exécutez, avec votre e-mail :
+7. Ouvrez l’adresse locale indiquée par Vite dans le terminal, généralement `http://localhost:5173`.
 
-```sql
-update public.profiles set is_admin = true, verified = true
-where id = (select id from auth.users where email = 'vous@exemple.com');
-```
+### Option B — Déploiement sur Vercel
 
-La page d'administration apparaît alors dans **Mon profil**.
+1. Connectez-vous à [Vercel](https://vercel.com/) avec votre compte GitHub.
+2. Importez le dépôt privé `faalvisuel/ABALMA` et autorisez l’accès si Vercel le demande.
+3. Vérifiez les paramètres : commande de build `npm run build`, dossier de sortie `dist`.
+4. Dans **Settings > Environment Variables**, ajoutez :
+   - `VITE_SUPABASE_URL` : l’URL du projet Supabase.
+   - `VITE_SUPABASE_ANON_KEY` : la clé publique `anon`/publishable du projet Supabase.
+5. Déployez, puis ouvrez l’URL fournie par Vercel.
+6. Après chaque modification, un nouveau push sur la branche `main` déclenche normalement un redéploiement.
+7. Dans Supabase, ouvrez **Authentication > URL Configuration** et configurez les URL du site et de redirection avec le domaine Vercel.
 
-## Tester le parcours complet
+**Sécurité :** ne placez jamais une clé `service_role` ou une clé secrète Supabase dans une variable `VITE_*` ni dans le code côté navigateur.
 
-Il faut deux comptes (deux adresses e-mail), par exemple dans deux navigateurs :
+## Configurer Supabase
 
-1. Compte A publie un matériel (onglet **Publier**).
-2. Compte B ouvre l'annonce, choisit ses dates et envoie la demande.
-3. Compte A accepte la demande (onglet **Revenus**).
-4. Compte B paie (simulé) et reçoit son code de remise, l'adresse et le numéro WhatsApp.
-5. Compte A saisit le code, puis valide le retour.
-6. Les deux se notent. Le score de B augmente.
+1. Créez un projet sur [Supabase](https://supabase.com/).
+2. Dans **SQL Editor**, exécutez le contenu de [`supabase/schema.sql`](supabase/schema.sql).
+3. Récupérez l’URL du projet et sa clé publique dans les paramètres API.
+4. Ajoutez ces deux valeurs dans `.env.local` en local et dans les variables d’environnement de l’hébergeur en ligne.
+5. Pour les tests uniquement, la confirmation d’e-mail peut être désactivée dans les paramètres d’authentification. Réactivez-la avant toute ouverture publique.
 
-Les 8 annonces d'exemple ne sont pas réservables ; supprimez-les depuis l'administration quand vous avez de vraies annonces.
+Si ces variables ne sont pas renseignées, l’application n’a pas accès à la base et ne peut pas fournir le parcours complet.
 
-## Lancer en local
+## Fonctionnalités prévues
 
-```bash
-npm install
-cp .env.example .env.local   # puis remplissez les deux valeurs
-npm run dev
-```
+- Comptes e-mail/mot de passe et profils, avec vérification manuelle par l’administration.
+- Annonces avec photos, recherche et catégories.
+- Demandes de réservation, calendrier sur 12 mois et décision du loueur.
+- Paiement de test, code de remise à quatre chiffres et confirmation du retour.
+- Coordonnées du loueur révélées après l’étape de paiement prévue.
+- Avis, score de confiance et niveaux de loueur.
+- Interface d’administration sur `/admin`.
 
-## Règles appliquées (modifiables)
+## Parcours de test
 
-| Règle | Valeur | Où la changer |
-| --- | --- | --- |
-| Commission | 15 % du prix plein | `supabase/schema.sql` (`request_booking`) et `src/lib/util.ts` |
-| Réduction du score | 5 % dès 500 points, 10 % dès 750, prise sur la commission | `request_booking` |
-| Caution réduite de moitié | dès 750 points | `request_booking` |
-| Acceptation automatique | dès 900 points | `request_booking` |
-| Points | +40 location terminée, +10 retour à l'heure, +10 note de 5 étoiles, −50 retard, −150 litige à ses torts | `confirm_return`, `submit_review`, `admin_resolve_dispute` |
-| Niveaux de loueur | Confirmé : 5 locations et 4,5 ; Vedette : 15 locations et 4,7 | `src/lib/util.ts` |
+Utilisez deux comptes distincts :
 
-## Ce qui reste à faire avant un vrai lancement
+1. Le compte A publie une annonce.
+2. Le compte B demande une réservation.
+3. Le compte A accepte ou refuse la demande.
+4. Le compte B suit le parcours de paiement simulé.
+5. Le compte A confirme la remise et le retour selon les étapes de l’application.
+6. Les utilisateurs peuvent laisser leurs avis si la réservation a atteint l’étape prévue.
 
-- Brancher Wave et Orange Money à la place de `pay_booking` (encaissement, versement au loueur, caution)
-- Faire valider par un juriste la détention des fonds (règles BCEAO) et déclarer le traitement des données à la CDP
-- Téléversement de la pièce d'identité (aujourd'hui l'administrateur coche « vérifié » à la main)
-- Notifications (SMS ou WhatsApp) à chaque étape, photos d'état des lieux à la remise et au retour
-- Modification d'une annonce existante, annulation après paiement, conditions générales
+Les annonces de démonstration ne sont pas nécessairement réservables.
 
-## Technique
+## Stack technique
 
-React + Vite + TypeScript, Supabase (PostgreSQL, authentification, stockage). Toute la logique sensible (montants, code de remise, score) est dans des fonctions SQL côté serveur, protégées par des règles d'accès par ligne.
+- React, TypeScript et Vite
+- Supabase : authentification, PostgreSQL et stockage
+- CSS responsive, avec une interface pensée d’abord pour mobile
+
+## État et précautions
+
+Il s’agit d’une version de test. Wave et Orange Money ne sont pas connectés à un véritable système d’encaissement : aucun paiement réel ne doit être attendu. Avant un lancement public, il faut notamment tester les autorisations et règles RLS, le flux de réservation, les paiements, les annulations, les litiges, les notifications et les obligations applicables au Sénégal.
