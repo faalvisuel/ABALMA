@@ -58,11 +58,11 @@ export default function Home() {
         <p>Le matériel qu’il te faut, les revenus que tu peux générer.</p>
       </div>
     </section>
-    <div className="field">
+    <div className="field home-search">
       <label htmlFor="q">Que cherchez-vous ?</label>
       <input id="q" type="search" placeholder="Caméra, sono, perceuse, chaises…" value={q} onChange={e => setQ(e.target.value)} />
     </div>
-    <div className="chips" role="group" aria-label="Filtrer par catégorie">
+    <div className="chips home-categories" role="group" aria-label="Filtrer par catégorie">
       {FILTERS.map(([lab, cat]) => {
         const CategoryIcon = cat ? CATEGORY_ICONS[cat] || PackageOpen : null
         return <button key={lab} className={'chip category-chip' + (filter === cat ? ' on' : '')} aria-pressed={filter === cat} onClick={() => setFilter(cat)}>
@@ -82,5 +82,16 @@ export default function Home() {
       </div>}
     </div>}
     <div className="center small"><Link to={user ? '/profil' : '/connexion'} className="semi">{user ? 'Mon profil' : 'Créer un compte'}</Link></div>
+    <footer className="social-footer" aria-label="Réseaux sociaux alma">
+      <div className="social-footer-title">Suivre alma</div>
+      <a href="https://www.instagram.com/_alma_sn/" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r=".8" className="social-mark-dot" /></svg>
+        Instagram
+      </a>
+      <a href="https://web.facebook.com/profile.php?id=61595418024350" target="_blank" rel="noopener noreferrer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path className="facebook-mark" d="M13.4 21v-7.4h2.5l.4-2.9h-2.9V8.8c0-.8.2-1.4 1.5-1.4h1.6V4.8c-.3 0-1.3-.1-2.4-.1-2.4 0-4 1.5-4 4.1v1.9H7.4v2.9h2.7V21z" /></svg>
+        Facebook
+      </a>
+    </footer>
   </Page>
 }

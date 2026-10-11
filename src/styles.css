@@ -72,6 +72,15 @@ h1, h2, h3, p { margin: 0; }
 .category-chip { display: inline-flex; align-items: center; gap: 8px; min-height: 56px; padding: 5px 12px 5px 6px; border-radius: 14px; }
 .category-icon { display: flex; width: 44px; height: 44px; flex: none; align-items: center; justify-content: center; border: 1px solid rgba(15, 61, 46, .08); border-radius: 10px; background: var(--tint); color: var(--green); }
 .category-chip.on .category-icon { background: var(--yellow); color: var(--ink); }
+.home-search { width: 100%; max-width: 760px; margin-inline: auto; }
+.home-categories { width: 100%; max-width: 1200px; flex-wrap: wrap; justify-content: center; overflow: visible; margin-inline: auto; padding-inline: 0; }
+.social-footer { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px 10px; margin-top: 8px; padding: 16px 0 8px; border-top: 1px solid var(--line); }
+.social-footer-title { flex: 0 0 100%; color: var(--muted); font-size: 12px; font-weight: 700; text-align: center; }
+.social-footer a { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 42px; padding: 0 14px; border: 1px solid var(--line); border-radius: 10px; background: var(--card); color: var(--green); font-size: 13px; font-weight: 600; }
+.social-footer a svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.social-footer a .social-mark-dot { fill: currentColor; stroke: none; }
+.social-footer a .facebook-mark { fill: currentColor; stroke: none; }
+.social-footer a:hover { background: var(--tint); }
 .pill { display: inline-flex; align-items: center; gap: 4px; padding: 5px 10px; border-radius: 10px; background: var(--tint); color: var(--green); font-size: 12px; font-weight: 700; white-space: nowrap; }
 .pill.warn { background: var(--warn-bg); color: var(--warn-ink); }
 .pill.dark { background: var(--green); color: #fff; }
