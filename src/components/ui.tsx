@@ -27,11 +27,10 @@ export function Star({ on = true, size = 18 }: { on?: boolean; size?: number }) 
   return <svg width={size} height={size} viewBox="0 0 24 24" aria-hidden="true" style={{ flex: 'none' }}>
     <path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.900 1-6.100-4.400-4.300 6.100-.900z" fill={on ? '#F2C230' : '#D5DBD2'} /></svg>
 }
-export function Logo() {
-  return <Link to="/" className="logo" aria-label="Abalma, accueil">
-    <svg width="32" height="32" viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="9" fill="#0F3D2E" />
-      <circle cx="13" cy="16" r="6" fill="none" stroke="#fff" strokeWidth="2.5" /><circle cx="20" cy="16" r="6" fill="#F2C230" /></svg>
-    <span>abalma</span></Link>
+export function Logo({ inverse = false }: { inverse?: boolean }) {
+  return <Link to="/" className={'logo' + (inverse ? ' inverse' : '')} aria-label="Alma, accueil">
+    <img src={inverse ? '/alma-wordmark-light.svg' : '/alma-wordmark.svg'} alt="Alma" />
+  </Link>
 }
 export function Header({ title, sub, back }: { title: string; sub?: string; back?: string | number }) {
   const nav = useNavigate()
@@ -41,7 +40,7 @@ export function Header({ title, sub, back }: { title: string; sub?: string; back
   </div>
 }
 export function BottomNav() {
-  const items: [string, string, string][] = [['/', 'search', 'Explorer'], ['/reservations', 'cal', 'Réservations'], ['/publier', 'plus', 'Publier'], ['/revenus', 'card', 'Revenus']]
+  const items: [string, string, string][] = [['/', 'search', 'Explorer'], ['/reservations', 'cal', 'Réservations'], ['/publier', 'plus', 'Publier'], ['/profil', 'user', 'Profil'], ['/revenus', 'card', 'Suivi']]
   return <nav className="nav" aria-label="Navigation principale">
     {items.map(([to, ic, lab]) => <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => isActive ? 'active' : ''}><Icon name={ic} />{lab}</NavLink>)}
   </nav>
@@ -95,7 +94,8 @@ export function Calendar({ busy, start, end, onChange }: { busy: [string, string
   const offset = (first.getDay() + 6) % 7
   const count = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate()
   const now = new Date(); const minMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-  const maxMonth = new Date(now.getFullYear(), now.getMonth() + 11, 1)
+  const maxDate = new Date(now.getFullYear() + 1, now.getMonth(), now.getDate())
+  const maxMonth = new Date(maxDate.getFullYear(), maxDate.getMonth(), 1)
   function pick(d: string) {
     if (!start || (start && end)) return onChange(d, null)
     if (d < start) return onChange(d, null)
@@ -113,7 +113,7 @@ export function Calendar({ busy, start, end, onChange }: { busy: [string, string
       {['lun.', 'mar.', 'mer.', 'jeu.', 'ven.', 'sam.', 'dim.'].map(d => <div key={d} className="dow">{d}</div>)}
       {cells.map((d, i) => {
         if (!d) return <span key={'e' + i} />
-        const b = isBusy(d), past = d < today
+        const b = isBusy(d), past = d < today || d > iso(maxDate)
         const sel = d === start || d === end, mid = start && end && d > start && d < end
         return <button key={d} type="button" disabled={b || past} onClick={() => pick(d)}
           aria-label={`${Number(d.slice(8))} ${MONTHS[cursor.getMonth()]}${b ? ', déjà loué' : ''}`} aria-pressed={!!sel}

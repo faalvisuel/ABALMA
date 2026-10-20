@@ -17,12 +17,17 @@ export default function Reserve() {
   const [sending, setSending] = useState(false)
 
   useEffect(() => {
-    supabase.from('listings').select('*, owner:profiles(first_name)').eq('id', id).maybeSingle().then(({ data }) => setL(data || null))
+    supabase.from('listings').select('*, owner:public_profiles(first_name)').eq('id', id).maybeSingle().then(({ data }) => setL(data || null))
     supabase.rpc('listing_busy', { p_listing: id }).then(({ data }) => setBusy((data || []).map((r: any) => [r.start_date, r.end_date])))
   }, [id])
 
   if (l === undefined) return <Page nav={false}><Spinner /></Page>
   if (!l) return <Page nav={false}><Header title="Annonce introuvable" back="/" /></Page>
+  if (profile?.identity_status !== 'verified') return <Page nav={false}>
+    <Header title="Vérifiez votre identité" back={`/annonce/${id}`} />
+    <div className="card stack"><p className="soft">La vérification manuelle de votre pièce d’identité est nécessaire avant d’envoyer une demande de location.</p>
+      <Link to="/profil#identite" className="btn">Vérifier mon identité</Link></div>
+  </Page>
 
   const score = profile?.score ?? 400
   const lvl = borrowerLevel(score)
@@ -52,11 +57,10 @@ export default function Reserve() {
       <h2 className="h3">Récapitulatif</h2>
       {days === 0 ? <div className="soft small">Choisissez vos dates pour voir le prix.</div> : <>
         <Row l={`${l.title} · ${days} jour${days > 1 ? 's' : ''} × ${fcfa(l.price)}`} v={fcfa(total)} />
-        {discount > 0 && <Row l={`Réduction ${lvl.name} (${lvl.pct} %)`} v={'− ' + fcfa(discount)} />}
-        <Row l="Frais de service" v={fcfa(0)} />
+        {discount > 0 && <Row l={`Réduction indicative ${lvl.name} (${lvl.pct} %)`} v={'− ' + fcfa(discount)} />}
         <hr className="sep" />
-        <Row l="À payer" v={fcfa(total - discount)} bold />
-        <Row l="Caution bloquée, puis rendue" v={fcfa(deposit)} />
+        <Row l="Estimation indicative" v={fcfa(total - discount)} bold />
+        <Row l="Caution éventuelle (à convenir directement)" v={fcfa(deposit)} />
       </>}
     </div>
     <Link to="/score" className="card tint row" style={{ padding: '12px 14px', color: 'inherit' }}>
@@ -67,11 +71,11 @@ export default function Reserve() {
       </div>
       <Icon name="right" size={18} />
     </Link>
-    <Note icon="shield">La caution vous est rendue dès que {l.owner?.first_name || 'le propriétaire'} confirme le retour du matériel en bon état.</Note>
+    <Note icon="shield">Alma ne collecte aucun paiement ni caution. Convenez des modalités directement avec le propriétaire avant la remise.</Note>
     <ErrorBox msg={err} />
     <div className="sticky-foot">
       <button className="btn" disabled={!start || sending} onClick={send}>{sending ? 'Envoi…' : score >= 900 ? 'Réserver (acceptation automatique)' : 'Envoyer la demande'}</button>
-      <div className="tiny muted center">Vous ne payez qu'après l'accord du propriétaire.</div>
+      <div className="tiny muted center">Demande sans paiement intégré · les montants affichés sont indicatifs.</div>
     </div>
   </Page>
 }

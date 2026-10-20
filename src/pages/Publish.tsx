@@ -2,8 +2,8 @@ import { ChangeEvent, FormEvent, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase, errMsg } from '../lib/supabase'
 import { useAuth } from '../auth'
-import { CATEGORIES, CATEGORY_HINTS, COMMISSION, compressImage, fcfa } from '../lib/util'
-import { ErrorBox, Header, Icon, Note, Page, Row, Thumb } from '../components/ui'
+import { CATEGORIES, CATEGORY_HINTS, compressImage, fcfa } from '../lib/util'
+import { ErrorBox, Header, Icon, Note, Page, Thumb } from '../components/ui'
 
 const MAX = 5, MIN = 3
 
@@ -38,7 +38,12 @@ export default function Publish() {
   }
 
   const price = Math.max(0, parseInt(f.price || '0', 10) || 0)
-  const commission = Math.round(price * COMMISSION)
+
+  if (profile?.identity_status !== 'verified') return <Page nav={false}>
+    <Header title="Vérifiez votre identité" back="/profil" />
+    <div className="card stack"><p className="soft">Pour protéger les personnes qui louent et proposent du matériel, Alma demande une vérification manuelle de la pièce d’identité avant toute publication.</p>
+      <Link to="/profil#identite" className="btn">Vérifier mon identité</Link></div>
+  </Page>
 
   async function publish(e: FormEvent) {
     e.preventDefault(); setErr(null)
@@ -61,11 +66,11 @@ export default function Publish() {
       <h1 className="display" style={{ fontSize: 26 }}>Votre annonce est en ligne</h1>
       <p className="muted">Elle est visible par les emprunteurs de Dakar dès maintenant.</p>
     </div>
-    <div className="card row" style={{ padding: 12 }}><Thumb src={done.photos?.[0]} small /><div className="stack s2 grow"><div className="bold">{done.title}</div><div className="small green bold num">{fcfa(done.price)} / jour · vous recevez {fcfa(done.price - Math.round(done.price * COMMISSION))}</div></div></div>
+    <div className="card row" style={{ padding: 12 }}><Thumb src={done.photos?.[0]} small /><div className="stack s2 grow"><div className="bold">{done.title}</div><div className="small green bold num">Prix indicatif : {fcfa(done.price)} / jour</div></div></div>
     <div className="card stack"><h2 className="h3">Ce qui se passe ensuite</h2>
       <Note icon="check">Chaque demande apparaît dans l'onglet Revenus.</Note>
       <Note icon="check">Vous acceptez ou refusez en voyant le score de confiance de l'emprunteur.</Note>
-      <Note icon="check">Votre versement est dû dès que vous saisissez son code de remise.</Note></div>
+      <Note icon="check">Aucun paiement n’est intégré; convenez directement des modalités avec l’emprunteur.</Note></div>
     <Link to="/mes-annonces" className="btn">Voir mes annonces</Link>
     <button className="link-btn" onClick={() => { setDone(null); setStep(1); setPhotos([]); setF({ ...f, title: '', description: '', price: '', deposit: '', category_other: '' }) }}>Publier un autre matériel</button>
   </Page>
@@ -100,18 +105,13 @@ export default function Publish() {
       <div className="card stack">
         <div className="field"><label htmlFor="ad">Lieu exact de remise</label><input id="ad" required placeholder="Ex. Sacré-Cœur 3, villa 12" value={f.exact_address} onChange={set('exact_address')} /></div>
         <div className="field"><label htmlFor="wa">Numéro WhatsApp</label><input id="wa" required type="tel" inputMode="tel" placeholder="77 000 00 00" value={f.whatsapp} onChange={set('whatsapp')} /></div>
-        <Note icon="lock">Montrés à l'emprunteur seulement après son paiement.</Note>
+        <Note icon="lock">Montrés à l’emprunteur seulement après acceptation de sa demande.</Note>
       </div>
       <div className="grid2">
         <div className="field"><label htmlFor="pr">Prix par jour (F CFA)</label><input id="pr" required type="number" inputMode="numeric" min={500} step={500} value={f.price} onChange={set('price')} /></div>
         <div className="field"><label htmlFor="dp">Caution (F CFA)</label><input id="dp" type="number" inputMode="numeric" min={0} step={1000} placeholder="0" value={f.deposit} onChange={set('deposit')} /></div>
       </div>
-      <div className="card dark stack">
-        <Row l="Prix payé par l'emprunteur" v={fcfa(price)} />
-        <Row l="Commission Abalma (15 %)" v={'− ' + fcfa(commission)} />
-        <hr className="sep" />
-        <div className="row between"><span className="bold">Vous recevez par jour</span><span className="display accent num" style={{ fontSize: 24 }}>{fcfa(price - commission)}</span></div>
-      </div>
+      <div className="notice">Ce prix est une indication pour les échanges entre vous et les personnes intéressées. Aucun paiement ou commission n’est traité par Alma.</div>
       <ErrorBox msg={err} />
       <button className="btn" disabled={saving}>{saving ? 'Publication…' : 'Publier l’annonce'}</button>
       <div className="small soft center">Publier une annonce est gratuit.</div>

@@ -64,7 +64,7 @@ export function ownerLevel(p: any): OwnerLevel {
 }
 
 export const STATUS_LABEL: Record<string, string> = {
-  requested: 'Demande envoyée', accepted: 'Acceptée · à payer', refused: 'Refusée', paid: 'Payée',
+  requested: 'Demande envoyée', accepted: 'Acceptée · à organiser', refused: 'Refusée', paid: 'À organiser',
   ongoing: 'En cours', done: 'Terminée', cancelled: 'Annulée', dispute: 'Litige en cours',
 }
 

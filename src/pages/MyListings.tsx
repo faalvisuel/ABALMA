@@ -55,7 +55,7 @@ export default function MyListings() {
       {rows.map(l => <div key={l.id} className="card stack" style={{ padding: 12 }}>
         <Link to={`/annonce/${l.id}`} className="row" style={{ color: 'inherit' }}><Thumb src={l.photos?.[0]} small />
           <div className="stack s2 grow"><div className="bold">{l.title}</div><div className="small muted num">{fcfa(l.price)} / jour · caution {fcfa(l.deposit)}</div></div>
-          <span className={'pill' + (l.status === 'online' ? '' : ' warn')}>{l.status === 'online' ? 'En ligne' : l.status === 'paused' ? 'En pause' : 'Masquée par Abalma'}</span></Link>
+          <span className={'pill' + (l.status === 'online' ? '' : ' warn')}>{l.status === 'online' ? 'En ligne' : l.status === 'paused' ? 'En pause' : 'Masquée par Alma'}</span></Link>
         {l.status !== 'hidden' && (confirm === l.id
           ? <div className="grid2"><button className="btn ghost sm" onClick={() => setConfirm(null)}>Garder</button><button className="btn danger sm" onClick={() => remove(l.id)}>Supprimer définitivement</button></div>
           : <div className="grid2"><button className="btn ghost sm" onClick={() => setStatus(l.id, l.status === 'online' ? 'paused' : 'online')}>{l.status === 'online' ? 'Mettre en pause' : 'Remettre en ligne'}</button><button className="btn danger sm" onClick={() => setConfirm(l.id)}>Supprimer</button></div>)}

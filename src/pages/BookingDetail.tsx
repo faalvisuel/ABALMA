@@ -20,7 +20,7 @@ export default function BookingDetail() {
     const { data } = await supabase.from('bookings').select(BOOKING_SELECT).eq('id', id).maybeSingle()
     setB(data || null)
     if (!data) return
-    if (data.borrower_id === user.id && ['paid', 'ongoing'].includes(data.status)) {
+    if (data.borrower_id === user.id && ['accepted', 'ongoing'].includes(data.status)) {
       const [c, p] = await Promise.all([
         supabase.from('booking_codes').select('code').eq('booking_id', id).maybeSingle(),
         supabase.from('listing_private').select('*').eq('listing_id', data.listing_id).maybeSingle(),
@@ -68,46 +68,33 @@ export default function BookingDetail() {
           onSend={(stars, tags, comment) => call('submit_review', { p_id: b.id, p_stars: stars, p_tags: tags, p_comment: comment })} />)}
     <div className="card stack">
       <h2 className="h3">Montants</h2>
-      <Row l={`${b.days} jour${b.days > 1 ? 's' : ''} de location`} v={fcfa(b.price_total)} />
+      <Row l={`${b.days} jour${b.days > 1 ? 's' : ''} · estimation de location`} v={fcfa(b.price_total)} />
       {!iAmOwner && b.discount > 0 && <Row l="Réduction score de confiance" v={'− ' + fcfa(b.discount)} />}
-      {iAmOwner && <Row l="Commission Abalma (15 %)" v={'− ' + fcfa(b.price_total - b.owner_payout)} />}
-      <hr className="sep" />
-      <Row l={iAmOwner ? 'Vous recevez' : 'À payer'} v={fcfa(iAmOwner ? b.owner_payout : b.amount_paid)} bold />
-      <Row l="Caution" v={fcfa(b.deposit)} />
+      <Row l="Caution éventuelle convenue entre vous" v={fcfa(b.deposit)} />
+      <div className="small soft">Paiement non intégré : aucun montant n’a été encaissé ni versé par Alma. Convenez directement de toute modalité avec l’autre partie.</div>
     </div>
   </Page>
 }
 
 function BorrowerView({ b, busy, call, code, priv }: any) {
-  const [method, setMethod] = useState('wave')
-  const [phone, setPhone] = useState('')
   const owner = shortName(b.owner)
   if (b.status === 'requested') return <div className="stack">
-    <div className="notice">Votre demande est envoyée. {owner} doit l'accepter avant que vous puissiez payer.</div>
+    <div className="notice">Votre demande est envoyée. {owner} doit l’accepter avant que vous puissiez convenir directement des modalités.</div>
     <button className="btn danger sm" disabled={busy} onClick={() => call('cancel_booking', { p_id: b.id })}>Annuler ma demande</button>
   </div>
   if (b.status === 'refused') return <div className="notice">{owner} n'a pas pu accepter cette demande. Vous pouvez chercher un autre matériel. <Link to="/" className="bold">Retour aux annonces</Link></div>
   if (b.status === 'cancelled') return <div className="notice">Cette réservation est annulée.</div>
   if (b.status === 'accepted') return <div className="stack s16">
-    <div className="test-banner">Version de test : le paiement est simulé, aucun argent n'est débité.</div>
-    <div className="stack s8"><h2 className="h3">Payer avec</h2>
-      {[['wave', 'Wave'], ['orange_money', 'Orange Money']].map(([v, lab]) =>
-        <label key={v} className={'radio-card' + (method === v ? ' on' : '')}><input type="radio" name="pm" checked={method === v} onChange={() => setMethod(v)} /><span className="bold">{lab}</span></label>)}
-    </div>
-    <div className="field"><label htmlFor="ph">Numéro du compte mobile</label><input id="ph" type="tel" inputMode="tel" placeholder="77 000 00 00" value={phone} onChange={e => setPhone(e.target.value)} /></div>
-    <Note icon="lock">Abalma garde votre paiement et le verse à {owner} après la remise du matériel.</Note>
-    <button className="btn" disabled={busy} onClick={() => call('pay_booking', { p_id: b.id, p_method: method })}>{busy ? 'Paiement…' : `Payer ${fcfa(b.amount_paid)}`}</button>
+    <div className="notice"><b>Demande acceptée · paiement non intégré.</b> Aucun paiement n’a été fait via Alma. Convenez directement des conditions avec {owner} avant la remise.</div>
+    <div className="code-box"><div className="label">Votre code de remise</div><div className="code">{code ? code.split('').join(' ') : '· · · ·'}</div><div className="small muted">Partagez-le uniquement quand le matériel est effectivement remis.</div></div>
+    <Contact priv={priv} owner={owner} />
     <button className="btn danger sm" disabled={busy} onClick={() => call('cancel_booking', { p_id: b.id })}>Annuler la réservation</button>
   </div>
-  if (b.status === 'paid' || b.status === 'ongoing') return <div className="stack s16">
-    {b.status === 'paid' ? <div className="code-box">
-      <div className="label">Code de remise</div>
-      <div className="code">{code ? code.split('').join(' ') : '· · · ·'}</div>
-      <div className="small muted">Donnez ce code à {owner} seulement quand vous avez le matériel en main. Jamais par téléphone ni par message.</div>
-    </div> : <div className="notice">Location en cours. Rapportez le matériel le {frDate(b.end_date, true)} : un retour à l'heure fait monter votre score.</div>}
+  if (b.status === 'ongoing') return <div className="stack s16">
+    <div className="notice">Location déclarée en cours. Retour prévu le {frDate(b.end_date, true)}.</div>
     <Contact priv={priv} owner={owner} />
   </div>
-  if (b.status === 'dispute') return <div className="notice">Un problème a été signalé par {owner}. Abalma examine la situation et vous contactera.</div>
+  if (b.status === 'dispute') return <div className="notice">Un problème a été signalé par {owner}. Alma examine la situation et vous contactera.</div>
   return <div className="notice">Location terminée. Votre caution est libérée.</div>
 }
 
@@ -127,7 +114,7 @@ function Contact({ priv, owner }: { priv: any; owner: string }) {
         <a className="btn ghost sm" href={`tel:+${intl}`}><Icon name="phone" size={18} />Appeler</a>
       </div>}
     </div>
-    <Note icon="lock">L'adresse et le numéro sont visibles uniquement parce que votre réservation est payée.</Note>
+    <Note icon="lock">L'adresse et le numéro sont visibles uniquement pour le propriétaire et les personnes ayant une demande acceptée ou en cours.</Note>
   </>
 }
 
@@ -149,26 +136,26 @@ function OwnerView({ b, busy, call }: any) {
       <button className="btn ghost sm" disabled={busy} onClick={() => call('respond_booking', { p_id: b.id, p_accept: false })}>Refuser</button>
       <button className="btn sm" disabled={busy} onClick={() => call('respond_booking', { p_id: b.id, p_accept: true })}>Accepter</button>
     </div></div>
-  if (b.status === 'accepted') return <div className="stack">{who}<div className="notice">Demande acceptée. {name} doit maintenant payer ; vous serez prévenu ici.</div></div>
-  if (b.status === 'paid') return <div className="stack s16">{who}
+  if (b.status === 'accepted') return <div className="stack s16">{who}
+    <div className="notice">Demande acceptée. Aucun paiement n’est intégré. Confirmez les modalités directement avec {name} avant la remise.</div>
     <div className="card stack center">
       <h2 className="h3">Saisissez le code donné par {name}</h2>
       <div className="field"><label htmlFor="code" className="small muted">Code à 4 chiffres</label>
         <input id="code" className="code-input" inputMode="numeric" maxLength={4} autoComplete="off" value={code} onChange={e => { setCode(e.target.value.replace(/\D/g, '')); setWrong(false) }} /></div>
       {wrong && <div className="error" role="alert">Code incorrect. Vérifiez avec {name} ({5 - (b.code_attempts || 0)} essai{5 - (b.code_attempts || 0) > 1 ? 's' : ''} restant{5 - (b.code_attempts || 0) > 1 ? 's' : ''}).</div>}
-      <div className="small muted">L'emprunteur vous le donne une fois le matériel en main. C'est ce code qui déclenche votre versement.</div>
+      <div className="small muted">L’emprunteur vous le donne une fois le matériel en main. Ce code confirme la remise déclarée dans l’application; il ne confirme aucun paiement.</div>
     </div>
     <button className="btn" disabled={busy || code.length !== 4} onClick={async () => { const ok = await call('confirm_handover', { p_id: b.id, p_code: code }); if (ok === false) setWrong(true) }}>Valider la remise</button>
   </div>
   if (b.status === 'ongoing') return <div className="stack s16">{who}
-    <div className="notice">Location en cours. Retour prévu le {frDate(b.end_date, true)}. Votre versement de {fcfa(b.owner_payout)} est dû.</div>
+    <div className="notice">Location déclarée en cours. Retour prévu le {frDate(b.end_date, true)}. Aucun versement n’est effectué par Alma.</div>
     <label className="row" style={{ minHeight: 44 }}><input type="checkbox" checked={late} onChange={e => setLate(e.target.checked)} style={{ width: 20, height: 20, accentColor: '#0F3D2E' }} /><span>Le matériel a été rendu en retard</span></label>
     {showProblem && <div className="field"><label htmlFor="pb">Décrivez le problème (casse, pièce manquante…)</label><textarea id="pb" value={problem} onChange={e => setProblem(e.target.value)} /></div>}
     <button className="btn" disabled={busy || (showProblem && !problem.trim())} onClick={() => call('confirm_return', { p_id: b.id, p_late: late, p_problem: showProblem ? problem : '' })}>{showProblem ? 'Envoyer le signalement' : 'Valider le retour en bon état'}</button>
     <button className="link-btn" onClick={() => setShowProblem(!showProblem)}>{showProblem ? 'Finalement, tout va bien' : 'Signaler un problème'}</button>
   </div>
-  if (b.status === 'dispute') return <div className="stack">{who}<div className="notice">Votre signalement est transmis à Abalma : « {b.problem} »</div></div>
-  if (b.status === 'done') return <div className="stack">{who}<div className="notice">Location terminée. Versement : {fcfa(b.owner_payout)}.</div></div>
+  if (b.status === 'dispute') return <div className="stack">{who}<div className="notice">Votre signalement est transmis à Alma : « {b.problem} »</div></div>
+  if (b.status === 'done') return <div className="stack">{who}<div className="notice">Location terminée selon les déclarations des utilisateurs. Aucun versement n’a été effectué par Alma.</div></div>
   return <div className="stack">{who}<div className="notice">Cette demande est {b.status === 'refused' ? 'refusée' : 'annulée'}.</div></div>
 }
 

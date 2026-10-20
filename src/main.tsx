@@ -1,10 +1,12 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import './styles.css'
 import { AuthProvider, useAuth } from './auth'
 import { configured } from './lib/supabase'
-import { Spinner } from './components/ui'
+import { ErrorBox, Spinner } from './components/ui'
+import { supabase, errMsg } from './lib/supabase'
+import { TERMS_VERSION } from './pages/AuthPage'
 import Home from './pages/Home'
 import ListingPage from './pages/ListingPage'
 import Reserve from './pages/Reserve'
@@ -17,29 +19,64 @@ import Earnings from './pages/Earnings'
 import Score from './pages/Score'
 import Profile from './pages/Profile'
 import Admin from './pages/Admin'
+import Legal from './pages/Legal'
 
 function Private({ children }: { children: JSX.Element }) {
-  const { user, loading } = useAuth()
+  const { user, profile, loading, signOut } = useAuth()
   const loc = useLocation()
   if (loading) return <Spinner />
   if (!user) return <Navigate to={`/connexion?suite=${encodeURIComponent(loc.pathname + loc.search)}`} replace />
-  return children
+  if (profile?.suspended) return <main className="page no-nav"><h1 className="display h1">Compte temporairement suspendu</h1><p className="soft">Contactez l’équipe Alma pour obtenir des informations ou contester cette mesure : [contact à compléter].</p><button className="btn ghost" onClick={signOut}>Se déconnecter</button></main>
+  return <TermsGate>{children}</TermsGate>
 }
 
-function Setup() {
-  return <main className="page no-nav">
-    <h1 className="display h1">Abalma n'est pas encore relié à sa base de données</h1>
-    <p className="soft">Ajoutez les variables <b>VITE_SUPABASE_URL</b> et <b>VITE_SUPABASE_ANON_KEY</b> dans les réglages de l'hébergeur (ou dans un fichier <b>.env.local</b>), puis relancez la mise en ligne. Les étapes sont détaillées dans le fichier README.</p>
+function TermsGate({ children }: { children: JSX.Element }) {
+  const { user } = useAuth()
+  const [loading, setLoading] = useState(true)
+  const [accepted, setAccepted] = useState(false)
+  const [checked, setChecked] = useState(false)
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    let active = true
+    supabase.from('terms_acceptances').select('id').eq('user_id', user.id).eq('terms_version', TERMS_VERSION).maybeSingle()
+      .then(({ data, error: e }) => { if (active) { if (e) setError(errMsg(e)); setAccepted(Boolean(data)); setLoading(false) } })
+    return () => { active = false }
+  }, [user.id])
+  if (loading) return <Spinner />
+  if (accepted) return children
+  async function accept() {
+    setBusy(true); setError(null)
+    const { error: e } = await supabase.rpc('accept_current_terms')
+    setBusy(false)
+    if (e) {
+      const code = 'code' in e ? String(e.code) : ''
+      if (code === 'PGRST202' || code === 'PGRST205') {
+        return setError('La base Alma n’a pas encore reçu la migration de pré-lancement. Dans Supabase, ouvrez SQL Editor et exécutez supabase/prelaunch-migration.sql, puis rechargez cette page.')
+      }
+      return setError(errMsg(e))
+    }
+    setAccepted(true)
+  }
+  return <main className="page no-nav"><h1 className="display h1">Mise à jour des conditions</h1>
+    <p className="soft">Pour continuer à utiliser Alma, consultez et acceptez les conditions d’utilisation et la politique de confidentialité en vigueur.</p>
+    <div className="row wrap"><a href="/cgu" target="_blank" rel="noreferrer">Lire les CGU</a><a href="/confidentialite" target="_blank" rel="noreferrer">Lire la politique de confidentialité</a></div>
+    <label className="consent-row"><input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)} /><span>J’accepte la version {TERMS_VERSION} des conditions d’utilisation et de la politique de confidentialité.</span></label>
+    <ErrorBox msg={error} /><button className="btn" disabled={!checked || busy} onClick={accept}>{busy ? 'Enregistrement…' : 'Accepter et continuer'}</button>
   </main>
 }
 
 function App() {
-  if (!configured) return <div className="app"><Setup /></div>
   return <div className="app">
+    {!configured && <div className="setup-notice" role="status">Aperçu hors ligne : ajoutez <b>VITE_SUPABASE_URL</b> et <b>VITE_SUPABASE_ANON_KEY</b> pour activer les annonces, les comptes et les réservations.</div>}
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/annonce/:id" element={<ListingPage />} />
       <Route path="/connexion" element={<AuthPage />} />
+      <Route path="/cgu" element={<Legal page="cgu" />} />
+      <Route path="/mentions-legales" element={<Legal page="mentions" />} />
+      <Route path="/confidentialite" element={<Legal page="privacy" />} />
+      <Route path="/cookies" element={<Legal page="cookies" />} />
       <Route path="/reserver/:id" element={<Private><Reserve /></Private>} />
       <Route path="/reservations" element={<Private><Bookings /></Private>} />
       <Route path="/reservation/:id" element={<Private><BookingDetail /></Private>} />

@@ -14,9 +14,9 @@ export default function ListingPage() {
   const [i, setI] = useState(0)
 
   useEffect(() => {
-    supabase.from('listings').select('*, owner:profiles(id,first_name,last_name,verified,owner_rentals,owner_rating,job)').eq('id', id).maybeSingle()
+    supabase.from('listings').select('*, owner:public_profiles(id,first_name,last_name,verified,owner_rentals,owner_rating,job)').eq('id', id).maybeSingle()
       .then(({ data }) => setL(data || null))
-    supabase.from('reviews').select('*, author:profiles!reviews_author_id_fkey(first_name,last_name)').eq('listing_id', id).eq('role', 'borrower_to_owner')
+    supabase.from('reviews').select('*, author:public_profiles!reviews_author_id_fkey(first_name,last_name)').eq('listing_id', id).eq('role', 'borrower_to_owner')
       .order('created_at', { ascending: false }).limit(1).then(({ data }) => setReview(data?.[0] || null))
   }, [id])
 
@@ -40,7 +40,7 @@ export default function ListingPage() {
     </div>
     <div className="grid2">
       <div className="card stack s2" style={{ padding: '12px 14px' }}><div className="tiny muted">Prix par jour</div><div className="bold num" style={{ fontSize: 18 }}>{fcfa(l.price)}</div></div>
-      <div className="card stack s2" style={{ padding: '12px 14px' }}><div className="tiny muted">Caution bloquée, puis rendue</div><div className="bold num" style={{ fontSize: 18 }}>{fcfa(l.deposit)}</div></div>
+      <div className="card stack s2" style={{ padding: '12px 14px' }}><div className="tiny muted">Caution éventuelle à convenir</div><div className="bold num" style={{ fontSize: 18 }}>{fcfa(l.deposit)}</div></div>
     </div>
     <div className="card row" style={{ padding: '12px 14px' }}>
       <div className="avatar">{l.is_demo ? (name || '?').slice(0, 1) : initials(o?.first_name, o?.last_name)}</div>
@@ -62,7 +62,7 @@ export default function ListingPage() {
     </div>}
     <div className="card stack s6" style={{ padding: '12px 14px' }}>
       <div className="small bold">Remise et retour</div>
-      <div className="soft" style={{ fontSize: 14 }}>À récupérer chez le propriétaire, à {l.quartier}. L'adresse exacte et son numéro WhatsApp vous sont donnés après le paiement.</div>
+      <div className="soft" style={{ fontSize: 14 }}>À récupérer chez le propriétaire, à {l.quartier}. L’adresse exacte et son numéro sont communiqués après acceptation de la demande.</div>
     </div>
     <div className="sticky-foot">
       {l.is_demo ? <div className="notice">Annonce d'exemple : elle montre à quoi ressemble une annonce, mais ne peut pas être réservée.</div>

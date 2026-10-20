@@ -14,7 +14,7 @@ export function BookingRow({ b, as }: { b: any; as: 'borrower' | 'owner' }) {
     <div className="stack s2 grow">
       <div className="bold">{b.listing?.title}</div>
       <div className="small muted">{frDate(b.start_date)} → {frDate(b.end_date)} · {b.days} jour{b.days > 1 ? 's' : ''}</div>
-      <div className="small num semi">{as === 'owner' ? `Vous recevez ${fcfa(b.owner_payout)}` : fcfa(b.amount_paid)}</div>
+      <div className="small num semi">Estimation indicative : {fcfa(b.price_total)}</div>
     </div>
     <span className={'pill' + (warn ? ' warn' : '')}>{STATUS_LABEL[b.status]}</span>
   </Link>
