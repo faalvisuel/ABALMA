@@ -29,6 +29,7 @@ export function errMsg(e: any): string {
   if (/redirect_to.*not allowed|redirect url.*not allowed/i.test(m)) return 'Supabase refuse l’adresse de retour. Ajoutez https://faalvisuel.github.io/ABALMA/connexion dans Authentication → URL Configuration → Redirect URLs.'
   if (/database error saving new user/i.test(m)) return 'Supabase bloque la création du profil. Vérifiez que la migration supabase/prelaunch-migration.sql a été exécutée dans le projet Alma.'
   if (/email rate limit exceeded|too many requests/i.test(m)) return 'Trop de tentatives rapprochées. Attendez quelques minutes avant de réessayer.'
+  if (/email address not authorized/i.test(m)) return 'Supabase n’envoie pas encore les e-mails Alma à cette adresse. Configurez un serveur SMTP personnalisé dans Authentication → Emails → SMTP Settings.'
   if (/email.*not.*confirmed/i.test(m)) return 'Confirmez votre adresse avec le lien reçu par e-mail, puis reconnectez-vous.'
   if (/Failed to fetch/i.test(m)) return 'Connexion impossible. Vérifiez votre réseau et réessayez.'
   if (/Unsupported provider|provider is not enabled/i.test(m)) return 'La connexion Google n’est pas encore activée pour Alma. Activez Google dans les fournisseurs Supabase, puis réessayez.'
