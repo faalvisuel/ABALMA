@@ -40,9 +40,23 @@ Sans configuration Supabase, la page d’accueil et les pages d’information re
 
 ## Connexion Google
 
-Le bouton « Continuer avec Google » utilise Supabase Auth et demande l’acceptation des CGU avant la redirection. Pour l’activer, créer un client OAuth de type Web dans Google Cloud, puis activer **Authentication > Sign In / Providers > Google** dans Supabase et y saisir le Client ID et le Client Secret Google. Dans Google Cloud, ajouter comme URI de redirection autorisée l’URL de callback affichée par Supabase (format `https://<project-ref>.supabase.co/auth/v1/callback`). Dans **Authentication > URL Configuration** de Supabase, autoriser l’URL locale `http://127.0.0.1:5174/connexion` et l’URL de production. Exécuter la migration Alma mise à jour pour permettre la création de profil Google et enregistrer l’acceptation des conditions après le retour OAuth.
+Le bouton « Continuer avec Google » utilise Supabase Auth et demande l’acceptation des CGU avant la redirection. Pour l’activer, créer un client OAuth de type Web dans Google Cloud, puis activer **Authentication > Sign In / Providers > Google** dans Supabase et y saisir le Client ID et le Client Secret Google. Dans Google Cloud, ajouter comme URI de redirection autorisée l’URL de callback affichée par Supabase (format `https://<project-ref>.supabase.co/auth/v1/callback`). Dans **Authentication > URL Configuration** de Supabase, autoriser l’URL locale `http://127.0.0.1:5175/connexion` et l’URL de production. Exécuter la migration Alma mise à jour pour permettre la création de profil Google et enregistrer l’acceptation des conditions après le retour OAuth.
 
 Ne jamais mettre une clé `service_role`, une clé `secret` ou un mot de passe dans une variable `VITE_*`, le dépôt ou un message. La clé `anon` / publishable est publique et doit toujours être associée aux règles RLS du schéma.
+
+## Déploiement GitHub Pages
+
+Le workflow `.github/workflows/deploy-pages.yml` construit et publie le site à chaque mise à jour de `main`. L’URL du site sera `https://faalvisuel.github.io/ABALMA/`.
+
+Pour l’activer dans GitHub :
+
+1. Ouvrir **Settings > Pages** du dépôt et choisir **GitHub Actions** comme source.
+2. Dans **Settings > Secrets and variables > Actions > Variables**, ajouter `VITE_SUPABASE_URL` avec l’URL du projet et `VITE_SUPABASE_ANON_KEY` avec la clé publique `anon` / publishable. Ces valeurs sont intégrées au JavaScript du site et sont publiques; ne jamais y mettre une clé `service_role` ou `secret`.
+3. Dans Supabase, ouvrir **Authentication > URL Configuration**. Définir l’URL du site sur `https://faalvisuel.github.io/ABALMA/` et ajouter `https://faalvisuel.github.io/ABALMA/connexion` à la liste des URL de redirection autorisées.
+4. Pour Google, ajouter `https://faalvisuel.github.io` comme origine JavaScript autorisée dans Google Cloud. Garder l’URI de callback Supabase (`https://<project-ref>.supabase.co/auth/v1/callback`) dans les URI de redirection Google.
+5. Ouvrir l’onglet **Actions** et vérifier que « Build and deploy Alma to GitHub Pages » est terminé. Les routes profondes (par exemple `/ABALMA/connexion`) sont servies par un fichier de repli.
+
+La compilation Pages utilise le préfixe `/ABALMA/`; le développement local et Vercel continuent d’utiliser la racine `/`.
 
 ## Déploiement Vercel
 

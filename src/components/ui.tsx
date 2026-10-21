@@ -29,7 +29,7 @@ export function Star({ on = true, size = 18 }: { on?: boolean; size?: number }) 
 }
 export function Logo({ inverse = false }: { inverse?: boolean }) {
   return <Link to="/" className={'logo' + (inverse ? ' inverse' : '')} aria-label="Alma, accueil">
-    <img src={inverse ? '/alma-wordmark-light.svg' : '/alma-wordmark.svg'} alt="Alma" />
+    <img src={`${import.meta.env.BASE_URL}${inverse ? 'alma-wordmark-light.svg' : 'alma-wordmark.svg'}`} alt="Alma" />
   </Link>
 }
 export function Header({ title, sub, back }: { title: string; sub?: string; back?: string | number }) {

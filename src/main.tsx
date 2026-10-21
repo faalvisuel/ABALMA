@@ -60,7 +60,7 @@ function TermsGate({ children }: { children: JSX.Element }) {
   }
   return <main className="page no-nav"><h1 className="display h1">Mise à jour des conditions</h1>
     <p className="soft">Pour continuer à utiliser Alma, consultez et acceptez les conditions d’utilisation et la politique de confidentialité en vigueur.</p>
-    <div className="row wrap"><a href="/cgu" target="_blank" rel="noreferrer">Lire les CGU</a><a href="/confidentialite" target="_blank" rel="noreferrer">Lire la politique de confidentialité</a></div>
+    <div className="row wrap"><a href={`${import.meta.env.BASE_URL}cgu`} target="_blank" rel="noreferrer">Lire les CGU</a><a href={`${import.meta.env.BASE_URL}confidentialite`} target="_blank" rel="noreferrer">Lire la politique de confidentialité</a></div>
     <label className="consent-row"><input type="checkbox" checked={checked} onChange={e => setChecked(e.target.checked)} /><span>J’accepte la version {TERMS_VERSION} des conditions d’utilisation et de la politique de confidentialité.</span></label>
     <ErrorBox msg={error} /><button className="btn" disabled={!checked || busy} onClick={accept}>{busy ? 'Enregistrement…' : 'Accepter et continuer'}</button>
   </main>
@@ -92,5 +92,5 @@ function App() {
 }
 
 createRoot(document.getElementById('root')!).render(
-  <React.StrictMode><BrowserRouter><AuthProvider><App /></AuthProvider></BrowserRouter></React.StrictMode>
+  <React.StrictMode><BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '') || '/'}><AuthProvider><App /></AuthProvider></BrowserRouter></React.StrictMode>
 )

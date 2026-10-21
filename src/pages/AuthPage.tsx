@@ -55,7 +55,7 @@ export default function AuthPage() {
         supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}/connexion?suite=${encodeURIComponent(next)}`,
+            redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}connexion?suite=${encodeURIComponent(next)}`,
             skipBrowserRedirect: true,
           },
         }),
@@ -90,7 +90,7 @@ export default function AuthPage() {
   async function submit(e: FormEvent) {
     e.preventDefault(); setErr(null); setInfo(null); setBusy(true)
     if (mode === 'reset') {
-      const { error } = await supabase.auth.resetPasswordForEmail(f.email.trim(), { redirectTo: `${window.location.origin}/connexion` })
+      const { error } = await supabase.auth.resetPasswordForEmail(f.email.trim(), { redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}connexion` })
       setBusy(false)
       if (error) return setErr(errMsg(error))
       return setInfo('Si cette adresse correspond à un compte, un lien de réinitialisation va être envoyé.')
@@ -132,7 +132,7 @@ export default function AuthPage() {
       <div className="field"><label htmlFor="em">E-mail</label><input id="em" type="email" required autoComplete="email" value={f.email} onChange={set('email')} /></div>
       {mode !== 'reset' && <div className="field"><label htmlFor="pw">Mot de passe</label><input id="pw" type="password" required minLength={6} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} value={f.password} onChange={set('password')} />
         {mode === 'up' && <div className="hint">6 caractères au minimum.</div>}</div>}
-    {mode !== 'reset' && <label className="consent-row"><input type="checkbox" required={mode === 'up'} checked={acceptedTerms} onChange={e => { setAcceptedTerms(e.target.checked); if (e.target.checked) setErr(null) }} /><span>J’accepte les <a href="/cgu" target="_blank" rel="noreferrer">conditions d’utilisation</a> et reconnais avoir lu la <a href="/confidentialite" target="_blank" rel="noreferrer">politique de confidentialité</a>. Cette acceptation est nécessaire avant de continuer avec Google.</span></label>}
+    {mode !== 'reset' && <label className="consent-row"><input type="checkbox" required={mode === 'up'} checked={acceptedTerms} onChange={e => { setAcceptedTerms(e.target.checked); if (e.target.checked) setErr(null) }} /><span>J’accepte les <a href={`${import.meta.env.BASE_URL}cgu`} target="_blank" rel="noreferrer">conditions d’utilisation</a> et reconnais avoir lu la <a href={`${import.meta.env.BASE_URL}confidentialite`} target="_blank" rel="noreferrer">politique de confidentialité</a>. Cette acceptation est nécessaire avant de continuer avec Google.</span></label>}
       <ErrorBox msg={err} />
       {info && <div className="notice" role="status">{info}</div>}
       <button className="btn" disabled={busy}>{busy ? 'Un instant…' : mode === 'in' ? 'Se connecter' : mode === 'reset' ? 'Envoyer le lien' : 'Créer mon compte'}</button>
@@ -142,7 +142,7 @@ export default function AuthPage() {
       <button type="button" className="btn google-btn" disabled={busy || oauthPending} onClick={google}><span className="google-mark" aria-hidden="true">G</span>{busy || oauthPending ? 'Redirection vers Google…' : 'Continuer avec Google'}</button>
     </>}
     {mode === 'in' && <button className="link-btn" onClick={() => { setMode('reset'); setErr(null); setInfo(null) }}>Mot de passe oublié ?</button>}
-    <div className="auth-legal-links"><a href="/mentions-legales">Mentions légales</a><a href="/cookies">Cookies</a></div>
+    <div className="auth-legal-links"><a href={`${import.meta.env.BASE_URL}mentions-legales`}>Mentions légales</a><a href={`${import.meta.env.BASE_URL}cookies`}>Cookies</a></div>
     <button className="link-btn" onClick={() => { setMode(mode === 'up' ? 'in' : 'up'); setAcceptedTerms(false); setErr(null); setInfo(null) }}>
       {mode === 'up' ? 'Déjà un compte ? Se connecter' : 'Pas encore de compte ? Créer un compte'}
     </button>
