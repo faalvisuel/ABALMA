@@ -150,6 +150,10 @@ th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--lin
 .setup-notice { position: relative; z-index: 25; padding: 10px 16px; background: #fbefc7; color: #4b3a08; text-align: center; font-size: 13px; }
 .listing-results { scroll-margin-top: 20px; }
 .home-account { width: auto; flex: none; padding-inline: 12px; }
+.admin-metrics .card { padding: 14px; }
+.admin-queue-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; min-height: 44px; padding: 6px 0; border: 0; border-top: 1px solid var(--line); background: transparent; text-align: left; color: var(--soft); }
+.admin-queue-row:hover { color: var(--green); }
+.admin-filters { align-items: end; }
 .auth-divider { display: flex; align-items: center; gap: 12px; color: var(--muted); font-size: 13px; }
 .auth-divider::before, .auth-divider::after { content: ''; height: 1px; flex: 1; background: var(--line); }
 .google-btn { background: #fff; color: #202124; border: 1px solid var(--border); }
