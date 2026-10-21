@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase, errMsg, configured } from '../lib/supabase'
 import { useAuth } from '../auth'
-import { FILTERS, ownerLevel } from '../lib/util'
+import { FILTERS, isReadyForPublic, ownerLevel } from '../lib/util'
 import { ErrorBox, Icon, ListingCard, Logo, Page, Spinner } from '../components/ui'
 
 const OWNER = 'owner:public_profiles(id,first_name,last_name,verified,owner_rentals,owner_rating,job)'
@@ -18,7 +18,7 @@ export default function Home() {
   useEffect(() => {
     if (!configured) { setItems([]); return }
     supabase.from('listings').select(`*, ${OWNER}`).eq('status', 'online').order('created_at', { ascending: false })
-      .then(({ data, error }) => { if (error) setErr(errMsg(error)); setItems(data || []) })
+      .then(({ data, error }) => { if (error) setErr(errMsg(error)); setItems((data || []).filter(isReadyForPublic)) })
   }, [])
 
   const shown = useMemo(() => {
