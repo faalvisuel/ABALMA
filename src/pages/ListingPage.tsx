@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../auth'
-import { fcfa, initials, ownerLevel, shortName } from '../lib/util'
+import { fcfa, initials, isReadyForPublic, ownerLevel, shortName } from '../lib/util'
 import { Icon, Page, Spinner, Star } from '../components/ui'
 
 export default function ListingPage() {
@@ -15,7 +15,7 @@ export default function ListingPage() {
 
   useEffect(() => {
     supabase.from('listings').select('*, owner:public_profiles(id,first_name,last_name,verified,owner_rentals,owner_rating,job)').eq('id', id).maybeSingle()
-      .then(({ data }) => setL(data || null))
+      .then(({ data }) => setL(data && isReadyForPublic(data) ? data : null))
     supabase.from('reviews').select('*, author:public_profiles!reviews_author_id_fkey(first_name,last_name)').eq('listing_id', id).eq('role', 'borrower_to_owner')
       .order('created_at', { ascending: false }).limit(1).then(({ data }) => setReview(data?.[0] || null))
   }, [id])
