@@ -16,6 +16,18 @@ export const FILTERS: [string, string | null][] = [
   ['Événement', 'Événement et fête'], ['Maison', 'Maison et énergie'], ['Sport', 'Sport et loisirs'], ['Autre', 'Autre'],
 ]
 
+/** Only show complete, real listings to visitors; keep incomplete records available for editing. */
+export function isReadyForPublic(l: any): boolean {
+  if (!l || l.is_demo || !l.owner_id) return false
+  const title = String(l.title || '').trim()
+  const description = String(l.description || '').trim()
+  const photos = Array.isArray(l.photos) ? l.photos.filter((photo: unknown) => typeof photo === 'string' && photo.trim()) : []
+  const placeholder = /\b(test|exemple|demo|démo|placeholder|lorem ipsum|à venir|bientôt)\b/i
+  return title.length >= 4 && description.length >= 30 && !placeholder.test(`${title} ${description}`)
+    && Boolean(String(l.category || '').trim() && String(l.quartier || '').trim())
+    && Number(l.price) > 0 && photos.length >= 3 && photos.length <= 5
+}
+
 /** 20000 -> "20 000 F" */
 export function fcfa(n: number | null | undefined): string {
   const v = Math.round(Number(n) || 0)
