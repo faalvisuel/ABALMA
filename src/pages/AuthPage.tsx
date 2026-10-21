@@ -1,6 +1,6 @@
 import { FormEvent, useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
-import { supabase, errMsg, googleProviderEnabled } from '../lib/supabase'
+import { supabase, errMsg } from '../lib/supabase'
 import { useAuth } from '../auth'
 import { ErrorBox, Logo, Page, Spinner } from '../components/ui'
 
@@ -18,67 +18,29 @@ export default function AuthPage() {
   const [busy, setBusy] = useState(false)
   const [acceptedTerms, setAcceptedTerms] = useState(false)
   const [newPassword, setNewPassword] = useState('')
-  const [oauthPending, setOauthPending] = useState(() => sessionStorage.getItem('alma_google_terms_pending') === '1')
   const recovery = window.location.hash.includes('type=recovery')
   const set = (k: string) => (e: any) => setF({ ...f, [k]: e.target.value })
 
   useEffect(() => {
     if (!user || recovery) return
-    if (sessionStorage.getItem('alma_google_terms_pending') === '1') {
-      sessionStorage.removeItem('alma_google_terms_pending')
-      setOauthPending(false)
-      // The user checked the terms before leaving for Google; record that consent after OAuth returns.
-      void (async () => {
-        await supabase.rpc('accept_current_terms')
-        nav(next, { replace: true })
-      })()
-      return
-    }
     nav(next, { replace: true })
   }, [user?.id, recovery, next, nav])
 
-  async function google() {
-    if (!acceptedTerms) return setErr('Veuillez accepter les conditions et la politique de confidentialité avant de continuer avec Google.')
-    setErr(null); setInfo(null); setBusy(true)
-    const googleEnabled = await Promise.race([
-      googleProviderEnabled(),
-      new Promise<null>(resolve => window.setTimeout(() => resolve(null), 8000)),
+  async function withTimeout<T>(operation: Promise<T>): Promise<T> {
+    return Promise.race([
+      operation,
+      new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('La demande prend trop de temps. Vérifiez votre connexion et réessayez.')), 20000)),
     ])
-    if (googleEnabled === false) {
-      setBusy(false)
-      return setErr('La connexion Google n’est pas encore activée dans Supabase. Le bouton sera disponible après la configuration du fournisseur Google.')
-    }
-    try {
-      // Ask Supabase for the provider URL first, then navigate only after receiving it.
-      // This prevents a slow/hung request from leaving the button disabled indefinitely.
-      const result = await Promise.race([
-        supabase.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}connexion?suite=${encodeURIComponent(next)}`,
-            skipBrowserRedirect: true,
-          },
-        }),
-        new Promise<never>((_, reject) => window.setTimeout(() => reject(new Error('La demande de connexion Google prend trop de temps. Vérifiez votre connexion et réessayez.')), 15000)),
-      ])
-      if (result.error) throw result.error
-      if (!result.data.url) throw new Error('Supabase n’a pas renvoyé de lien Google. Vérifiez la configuration du fournisseur Google.')
-      sessionStorage.setItem('alma_google_terms_pending', '1')
-      setOauthPending(true)
-      window.location.assign(result.data.url)
-    } catch (error) {
-      sessionStorage.removeItem('alma_google_terms_pending')
-      setOauthPending(false); setBusy(false); setErr(errMsg(error))
-    }
   }
 
   async function finishPassword(e: FormEvent) {
     e.preventDefault(); setErr(null); setBusy(true)
-    const { error } = await supabase.auth.updateUser({ password: newPassword })
-    setBusy(false)
-    if (error) return setErr(errMsg(error))
-    window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`)
-    nav(next, { replace: true })
+    try {
+      const { error } = await withTimeout(supabase.auth.updateUser({ password: newPassword }))
+      if (error) throw error
+      window.history.replaceState({}, document.title, `${window.location.pathname}${window.location.search}`)
+      nav(next, { replace: true })
+    } catch (error) { setErr(errMsg(error)) } finally { setBusy(false) }
   }
 
   if (recovery && authLoading) return <Page nav={false}><Spinner /></Page>
@@ -89,29 +51,30 @@ export default function AuthPage() {
 
   async function submit(e: FormEvent) {
     e.preventDefault(); setErr(null); setInfo(null); setBusy(true)
-    if (mode === 'reset') {
-      const { error } = await supabase.auth.resetPasswordForEmail(f.email.trim(), { redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}connexion` })
-      setBusy(false)
-      if (error) return setErr(errMsg(error))
-      return setInfo('Si cette adresse correspond à un compte, un lien de réinitialisation va être envoyé.')
-    }
-    if (mode === 'in') {
-      const { error } = await supabase.auth.signInWithPassword({ email: f.email.trim(), password: f.password })
-      setBusy(false)
-      if (error) return setErr(errMsg(error))
-      nav(next, { replace: true })
-    } else {
-      if (!acceptedTerms) { setBusy(false); return setErr('Vous devez accepter les conditions d’utilisation et la politique de confidentialité.') }
-      const acceptedAt = new Date().toISOString()
-      const { data, error } = await supabase.auth.signUp({
-        email: f.email.trim(), password: f.password,
-        options: { data: { first_name: f.first_name.trim(), last_name: f.last_name.trim(), quartier: f.quartier.trim(), job: f.job.trim(), terms_accepted_version: TERMS_VERSION, terms_accepted_at: acceptedAt } },
-      })
-      setBusy(false)
-      if (error) return setErr(errMsg(error))
-      if (!data.session) return setInfo('Compte créé. Ouvrez le lien reçu par e-mail pour le confirmer, puis connectez-vous.')
-      nav(next, { replace: true })
-    }
+    try {
+      if (mode === 'reset') {
+        const { error } = await withTimeout(supabase.auth.resetPasswordForEmail(f.email.trim(), { redirectTo: `${window.location.origin}${import.meta.env.BASE_URL}connexion` }))
+        if (error) throw error
+        setInfo('Si cette adresse correspond à un compte, un lien de réinitialisation va être envoyé.')
+      } else if (mode === 'in') {
+        const { error } = await withTimeout(supabase.auth.signInWithPassword({ email: f.email.trim(), password: f.password }))
+        if (error) throw error
+        nav(next, { replace: true })
+      } else {
+        if (!acceptedTerms) throw new Error('Vous devez accepter les conditions d’utilisation et la politique de confidentialité.')
+        const acceptedAt = new Date().toISOString()
+        const { data, error } = await withTimeout(supabase.auth.signUp({
+          email: f.email.trim(), password: f.password,
+          options: {
+            emailRedirectTo: `${window.location.origin}${import.meta.env.BASE_URL}connexion`,
+            data: { first_name: f.first_name.trim(), last_name: f.last_name.trim(), quartier: f.quartier.trim(), job: f.job.trim(), terms_accepted_version: TERMS_VERSION, terms_accepted_at: acceptedAt },
+          },
+        }))
+        if (error) throw error
+        if (!data.session) setInfo('Compte créé. Consultez votre boîte e-mail et confirmez votre adresse avant de vous connecter.')
+        else nav(next, { replace: true })
+      }
+    } catch (error) { setErr(errMsg(error)) } finally { setBusy(false) }
   }
 
   return <Page nav={false}>
@@ -132,15 +95,11 @@ export default function AuthPage() {
       <div className="field"><label htmlFor="em">E-mail</label><input id="em" type="email" required autoComplete="email" value={f.email} onChange={set('email')} /></div>
       {mode !== 'reset' && <div className="field"><label htmlFor="pw">Mot de passe</label><input id="pw" type="password" required minLength={6} autoComplete={mode === 'in' ? 'current-password' : 'new-password'} value={f.password} onChange={set('password')} />
         {mode === 'up' && <div className="hint">6 caractères au minimum.</div>}</div>}
-    {mode !== 'reset' && <label className="consent-row"><input type="checkbox" required={mode === 'up'} checked={acceptedTerms} onChange={e => { setAcceptedTerms(e.target.checked); if (e.target.checked) setErr(null) }} /><span>J’accepte les <a href={`${import.meta.env.BASE_URL}cgu`} target="_blank" rel="noreferrer">conditions d’utilisation</a> et reconnais avoir lu la <a href={`${import.meta.env.BASE_URL}confidentialite`} target="_blank" rel="noreferrer">politique de confidentialité</a>. Cette acceptation est nécessaire avant de continuer avec Google.</span></label>}
+    {mode === 'up' && <label className="consent-row"><input type="checkbox" required checked={acceptedTerms} onChange={e => { setAcceptedTerms(e.target.checked); if (e.target.checked) setErr(null) }} /><span>J’accepte les <a href={`${import.meta.env.BASE_URL}cgu`} target="_blank" rel="noreferrer">conditions d’utilisation</a> et reconnais avoir lu la <a href={`${import.meta.env.BASE_URL}confidentialite`} target="_blank" rel="noreferrer">politique de confidentialité</a>. Cette acceptation est nécessaire pour créer mon compte.</span></label>}
       <ErrorBox msg={err} />
       {info && <div className="notice" role="status">{info}</div>}
       <button className="btn" disabled={busy}>{busy ? 'Un instant…' : mode === 'in' ? 'Se connecter' : mode === 'reset' ? 'Envoyer le lien' : 'Créer mon compte'}</button>
     </form>
-    {mode !== 'reset' && <>
-      <div className="auth-divider"><span>ou</span></div>
-      <button type="button" className="btn google-btn" disabled={busy || oauthPending} onClick={google}><span className="google-mark" aria-hidden="true">G</span>{busy || oauthPending ? 'Redirection vers Google…' : 'Continuer avec Google'}</button>
-    </>}
     {mode === 'in' && <button className="link-btn" onClick={() => { setMode('reset'); setErr(null); setInfo(null) }}>Mot de passe oublié ?</button>}
     <div className="auth-legal-links"><a href={`${import.meta.env.BASE_URL}mentions-legales`}>Mentions légales</a><a href={`${import.meta.env.BASE_URL}cookies`}>Cookies</a></div>
     <button className="link-btn" onClick={() => { setMode(mode === 'up' ? 'in' : 'up'); setAcceptedTerms(false); setErr(null); setInfo(null) }}>
