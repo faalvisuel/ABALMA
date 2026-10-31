@@ -17,6 +17,33 @@ const CATEGORY_ICONS: Record<string, string> = {
   'Autre': 'box',
 }
 
+const HERO_SLIDES = [
+  {
+    image: 'hero/camera.svg',
+    category: 'Audiovisuel',
+    badge: 'Vedette',
+    title: 'Caméra vidéo professionnelle',
+    place: 'Mermoz · Propriétaire vérifié',
+    price: '15 000 F',
+  },
+  {
+    image: 'hero/tools.svg',
+    category: 'Bricolage et outils',
+    badge: 'Populaire',
+    title: 'Perceuse et boîte à outils',
+    place: 'Point E · Propriétaire vérifié',
+    price: '5 000 F',
+  },
+  {
+    image: 'hero/event.svg',
+    category: 'Événement et fête',
+    badge: 'Disponible',
+    title: 'Sono et lumières de fête',
+    place: 'Almadies · Propriétaire vérifié',
+    price: '20 000 F',
+  },
+]
+
 const STEPS = [
   { title: 'Cherchez le matériel', text: 'Parcourez les annonces par catégorie ou par mot-clé, puis trouvez ce qui vous convient près de chez vous.' },
   { title: 'Demandez des dates', text: 'Choisissez la période qui vous arrange et envoyez une demande au propriétaire.' },
@@ -40,6 +67,12 @@ export default function Home() {
   const [filter, setFilter] = useState<string | null>(null)
   const [q, setQ] = useState('')
   const [expanded, setExpanded] = useState(false)
+  const [slide, setSlide] = useState(0)
+
+  useEffect(() => {
+    const timer = window.setInterval(() => setSlide(current => (current + 1) % HERO_SLIDES.length), 5000)
+    return () => window.clearInterval(timer)
+  }, [])
 
   useEffect(() => {
     if (!configured) { setItems([]); return }
@@ -63,7 +96,8 @@ export default function Home() {
 
   const visible = expanded ? shown : shown.slice(0, 6)
   const publishTo = user ? '/publier' : '/connexion'
-  const accountTo = user ? '/profil' : '/connexion'
+  const accountTo = user ? '/espace' : '/connexion'
+  const heroSlide = HERO_SLIDES[slide]
 
   function chooseCategory(category: string | null) {
     setFilter(category)
@@ -82,7 +116,7 @@ export default function Home() {
           <a href="#faq">FAQ</a>
         </nav>
         <div className="landing-actions">
-          <Link to={accountTo} className="btn ghost sm">{user ? 'Mon profil' : 'Connexion'}</Link>
+          <Link to={accountTo} className="btn ghost sm">{user ? 'Mon espace' : 'Connexion'}</Link>
           <Link to={publishTo} className="btn sm">Publier</Link>
         </div>
       </div>
@@ -109,16 +143,21 @@ export default function Home() {
           <div className="hero-glow" />
           <div className="hero-shape" />
           <div className="hero-card">
-            <div className="hero-card-img"><Icon name="cam" size={46} stroke={1.4} /></div>
+            <div className="hero-card-img">
+              <img key={heroSlide.image} className="hero-slide" src={`${import.meta.env.BASE_URL}${heroSlide.image}`} alt="" />
+              <span className="hero-slide-dots">
+                {HERO_SLIDES.map((s, i) => <i key={s.image} className={i === slide ? 'on' : ''} />)}
+              </span>
+            </div>
             <div className="stack s6">
               <div className="row between">
-                <span className="pill">Audiovisuel</span>
-                <span className="pill gold">Vedette</span>
+                <span className="pill">{heroSlide.category}</span>
+                <span className="pill gold">{heroSlide.badge}</span>
               </div>
-              <div className="bold" style={{ fontSize: 17 }}>Caméra vidéo professionnelle</div>
-              <div className="small muted">Mermoz · Propriétaire vérifié</div>
+              <div className="bold" style={{ fontSize: 17 }}>{heroSlide.title}</div>
+              <div className="small muted">{heroSlide.place}</div>
               <div className="row between" style={{ marginTop: 2 }}>
-                <span className="bold green num" style={{ fontSize: 18 }}>15 000 F <span className="muted small" style={{ fontWeight: 500 }}>/ jour</span></span>
+                <span className="bold green num" style={{ fontSize: 18 }}>{heroSlide.price} <span className="muted small" style={{ fontWeight: 500 }}>/ jour</span></span>
                 <span className="pill"><Icon name="check" size={13} stroke={2.5} />Disponible</span>
               </div>
             </div>

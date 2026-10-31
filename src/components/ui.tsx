@@ -46,7 +46,7 @@ export function Header({ title, sub, back }: { title: string; sub?: string; back
   </div>
 }
 export function BottomNav() {
-  const items: [string, string, string][] = [['/', 'search', 'Explorer'], ['/reservations', 'cal', 'Réservations'], ['/publier', 'plus', 'Publier'], ['/profil', 'user', 'Profil'], ['/revenus', 'card', 'Suivi']]
+  const items: [string, string, string][] = [['/accueil', 'search', 'Explorer'], ['/reservations', 'cal', 'Réservations'], ['/publier', 'plus', 'Publier'], ['/profil', 'user', 'Profil'], ['/revenus', 'card', 'Suivi']]
   return <nav className="nav" aria-label="Navigation principale">
     {items.map(([to, ic, lab]) => <NavLink key={to} to={to} end={to === '/'} className={({ isActive }) => isActive ? 'active' : ''}><Icon name={ic} />{lab}</NavLink>)}
   </nav>

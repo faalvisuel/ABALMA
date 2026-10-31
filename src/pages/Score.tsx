@@ -43,6 +43,6 @@ export default function Score() {
         <span className="soft">{e.reason} · {new Date(e.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}</span>
         <span className={'bold num ' + (e.points < 0 ? 'danger' : 'green')}>{e.points > 0 ? '+' : '−'}{Math.abs(e.points)}</span></div>)}
     </div>}
-    <Link to="/" className="btn">Trouver du matériel</Link>
+    <Link to="/accueil#annonces" className="btn">Trouver du matériel</Link>
   </Page>
 }
