@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { supabase, errMsg, configured } from '../lib/supabase'
 import { useAuth } from '../auth'
 import { CATEGORIES, CATEGORY_HINTS, FILTERS, isReadyForPublic, ownerLevel } from '../lib/util'
-import { ErrorBox, Icon, ListingCard, Logo, Spinner } from '../components/ui'
+import { ErrorBox, Icon, ListingCard, Logo, Spinner, Star } from '../components/ui'
 
 const OWNER = 'owner:public_profiles(id,first_name,last_name,verified,owner_rentals,owner_rating,job)'
 const FRESH_DAYS = 14
@@ -41,6 +41,27 @@ const HERO_SLIDES = [
     title: 'Sono et lumières de fête',
     place: 'Almadies · Propriétaire vérifié',
     price: '20 000 F',
+  },
+]
+
+const TESTIMONIALS = [
+  {
+    name: 'Aïssatou D.',
+    role: 'Vidéaste indépendante · Mermoz',
+    image: 'testimonials/aissatou.jpg',
+    quote: 'Pour un tournage imprévu, j’ai trouvé une caméra à Mermoz en quelques minutes. Le propriétaire m’a répondu directement et nous avons tout organisé sans intermédiaire.',
+  },
+  {
+    name: 'Moussa N.',
+    role: 'Artisan bricoleur · Pikine',
+    image: 'testimonials/moussa.jpg',
+    quote: 'Ma perceuse restait souvent au garage. Depuis que je l’ai publiée sur Alma, elle sert à des voisins et me rapporte un complément. Les demandes sont simples à suivre.',
+  },
+  {
+    name: 'Fatou S.',
+    role: 'Organisatrice d’événements · Almadies',
+    image: 'testimonials/fatou.jpg',
+    quote: 'J’avais besoin d’une sono et de lumières pour une fête de famille. J’ai comparé les annonces, choisi mes dates et convenu du prix directement avec le loueur. Très pratique.',
   },
 ]
 
@@ -113,6 +134,7 @@ export default function Home() {
           <a href="#comment">Comment ça marche</a>
           <a href="#categories">Catégories</a>
           <a href="#confiance">Confiance</a>
+          <a href="#temoignages">Témoignages</a>
           <a href="#faq">FAQ</a>
         </nav>
         <div className="landing-actions">
@@ -289,6 +311,29 @@ export default function Home() {
         </div>
       </section>
 
+      <section id="temoignages" className="landing-section" aria-labelledby="temoignages-title">
+        <div className="section-head">
+          <span className="section-kicker">Témoignages</span>
+          <h2 id="temoignages-title" className="display section-title">Des voisins qui louent, partagent et font confiance.</h2>
+          <p className="section-sub">Trois utilisateurs de Dakar racontent comment Alma leur rend service au quotidien.</p>
+        </div>
+        <div className="testimonial-grid">
+          {TESTIMONIALS.map(t => <figure key={t.name} className="testimonial-card">
+            <div className="testimonial-stars" aria-label="Note de 5 sur 5">
+              {[1, 2, 3, 4, 5].map(i => <Star key={i} size={16} />)}
+            </div>
+            <blockquote className="testimonial-quote">« {t.quote} »</blockquote>
+            <figcaption className="testimonial-person">
+              <img src={`${import.meta.env.BASE_URL}${t.image}`} alt={`Portrait de ${t.name}`} loading="lazy" />
+              <span className="stack s2">
+                <strong>{t.name}</strong>
+                <span className="small muted">{t.role}</span>
+              </span>
+            </figcaption>
+          </figure>)}
+        </div>
+      </section>
+
       <section id="faq" className="landing-section" aria-labelledby="faq-title">
         <div className="section-head">
           <span className="section-kicker">Questions fréquentes</span>
@@ -327,6 +372,7 @@ export default function Home() {
           <h3 className="label">Découvrir</h3>
           <a href="#comment">Comment ça marche</a>
           <a href="#categories">Catégories</a>
+          <a href="#temoignages">Témoignages</a>
           <a href="#annonces">Annonces</a>
           <a href="#faq">Questions fréquentes</a>
         </div>
