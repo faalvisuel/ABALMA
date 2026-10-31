@@ -17,6 +17,12 @@ const PATHS: Record<string, string> = {
   chat: '<path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H10l-5 4v-4a2 2 0 0 1-1-2z"/>',
   nav: '<path d="M12 3l7 18-7-4-7 4z"/>', add: '<path d="M12 6v12M6 12h12"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
+  tool: '<path d="M14.5 6.5a4 4 0 0 1-5.2 5.2L5 16v3h3l4.3-4.3a4 4 0 0 1 5.2-5.2l-2 2-1.3-1.3 2-2z"/><path d="M15 15l4 4"/>',
+  bolt: '<path d="M13 2L4 14h6l-1 8 9-12h-6z"/>',
+  party: '<path d="M4 20l4.5-12L16 15.5 4 20z"/><path d="M14 3.5l.7 2M18 6l2-.8M19.5 10.5l2 .8"/>',
+  bike: '<circle cx="6" cy="18" r="3"/><circle cx="18" cy="18" r="3"/><path d="M9 18h5l3-7h-4l-2 4M14 11l-2-4H9"/>',
+  box: '<path d="M3 8l9-5 9 5v8l-9 5-9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>',
+  spark: '<path d="M12 3l1.8 5.2L19 10l-5.2 1.8L12 17l-1.8-5.2L5 10l5.2-1.8z"/><path d="M18 16l.8 2.2L21 19l-2.2.8L18 22l-.8-2.2L15 19l2.2-.8z"/>',
 }
 export function Icon({ name, size = 22, stroke = 2 }: { name: string; size?: number; stroke?: number }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={stroke}
