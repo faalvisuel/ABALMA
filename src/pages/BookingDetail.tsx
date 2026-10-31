@@ -82,7 +82,7 @@ function BorrowerView({ b, busy, call, code, priv }: any) {
     <div className="notice">Votre demande est envoyée. {owner} doit l’accepter avant que vous puissiez convenir directement des modalités.</div>
     <button className="btn danger sm" disabled={busy} onClick={() => call('cancel_booking', { p_id: b.id })}>Annuler ma demande</button>
   </div>
-  if (b.status === 'refused') return <div className="notice">{owner} n'a pas pu accepter cette demande. Vous pouvez chercher un autre matériel. <Link to="/" className="bold">Retour aux annonces</Link></div>
+  if (b.status === 'refused') return <div className="notice">{owner} n'a pas pu accepter cette demande. Vous pouvez chercher un autre matériel. <Link to="/accueil#annonces" className="bold">Retour aux annonces</Link></div>
   if (b.status === 'cancelled') return <div className="notice">Cette réservation est annulée.</div>
   if (b.status === 'accepted') return <div className="stack s16">
     <div className="notice"><b>Demande acceptée · paiement non intégré.</b> Aucun paiement n’a été fait via Alma. Convenez directement des conditions avec {owner} avant la remise.</div>

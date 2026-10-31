@@ -36,7 +36,7 @@ export default function Bookings() {
     {rows === null ? <Spinner /> : rows.length === 0 ? <div className="card stack">
       <div className="bold">Aucune réservation pour l'instant</div>
       <div className="soft small">Vos demandes de location apparaîtront ici, avec votre code de remise et le contact du propriétaire.</div>
-      <Link to="/" className="btn">Trouver du matériel</Link>
+      <Link to="/accueil#annonces" className="btn">Trouver du matériel</Link>
     </div> : <>
       {active.length > 0 && <div className="stack"><h2 className="h3">En cours</h2>{active.map(b => <BookingRow key={b.id} b={b} as="borrower" />)}</div>}
       {past.length > 0 && <div className="stack"><h2 className="h3">Historique</h2>{past.map(b => <BookingRow key={b.id} b={b} as="borrower" />)}</div>}

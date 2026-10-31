@@ -21,7 +21,7 @@ export default function ListingPage() {
   }, [id])
 
   if (l === undefined) return <Page nav={false}><Spinner /></Page>
-  if (l === null) return <Page nav={false}><h1 className="display h2">Annonce introuvable</h1><Link to="/" className="btn">Retour à l'accueil</Link></Page>
+  if (l === null) return <Page nav={false}><h1 className="display h2">Annonce introuvable</h1><Link to="/accueil" className="btn">Retour à l'accueil</Link></Page>
 
   const o = l.owner, lvl = ownerLevel(o)
   const name = l.is_demo ? l.demo_owner : shortName(o)

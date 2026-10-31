@@ -101,6 +101,6 @@ export default function Profile() {
       {ok && <div className="notice" role="status">Informations enregistrées.</div>}
       <button className="btn sm">Enregistrer</button>
     </form>
-    <button className="btn ghost sm" onClick={async () => { await signOut(); nav('/') }}>Se déconnecter</button>
+    <button className="btn ghost sm" onClick={async () => { await signOut(); nav('/accueil', { replace: true }) }}>Se déconnecter</button>
   </Page>
 }

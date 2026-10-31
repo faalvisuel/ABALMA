@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { BrowserRouter, Navigate, Route, Routes, useLocation } from 'react-router-dom'
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import './styles.css'
 import { AuthProvider, useAuth } from './auth'
 import { configured } from './lib/supabase'
@@ -20,13 +20,15 @@ import Score from './pages/Score'
 import Profile from './pages/Profile'
 import Admin from './pages/Admin'
 import Legal from './pages/Legal'
+import Espace from './pages/Espace'
 
 function Private({ children }: { children: JSX.Element }) {
   const { user, profile, loading, signOut } = useAuth()
   const loc = useLocation()
+  const nav = useNavigate()
   if (loading) return <Spinner />
   if (!user) return <Navigate to={`/connexion?suite=${encodeURIComponent(loc.pathname + loc.search)}`} replace />
-  if (profile?.suspended) return <main className="page no-nav"><h1 className="display h1">Compte temporairement suspendu</h1><p className="soft">Contactez l’équipe Alma pour obtenir des informations ou contester cette mesure : [contact à compléter].</p><button className="btn ghost" onClick={signOut}>Se déconnecter</button></main>
+  if (profile?.suspended) return <main className="page no-nav"><h1 className="display h1">Compte temporairement suspendu</h1><p className="soft">Contactez l’équipe Alma pour obtenir des informations ou contester cette mesure : [contact à compléter].</p><button className="btn ghost" onClick={async () => { await signOut(); nav('/accueil', { replace: true }) }}>Se déconnecter</button></main>
   return <TermsGate>{children}</TermsGate>
 }
 
@@ -66,11 +68,19 @@ function TermsGate({ children }: { children: JSX.Element }) {
   </main>
 }
 
+function Landing() {
+  const { user, loading } = useAuth()
+  if (loading) return <Spinner />
+  return user ? <Navigate to="/espace" replace /> : <Home />
+}
+
 function App() {
   return <div className="app">
     {!configured && <div className="setup-notice" role="status">Aperçu hors ligne : ajoutez <b>VITE_SUPABASE_URL</b> et <b>VITE_SUPABASE_ANON_KEY</b> pour activer les annonces, les comptes et les réservations.</div>}
     <Routes>
-      <Route path="/" element={<Home />} />
+      <Route path="/" element={<Landing />} />
+      <Route path="/accueil" element={<Home />} />
+      <Route path="/espace" element={<Private><Espace /></Private>} />
       <Route path="/annonce/:id" element={<ListingPage />} />
       <Route path="/connexion" element={<AuthPage />} />
       <Route path="/cgu" element={<Legal page="cgu" />} />
